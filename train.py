@@ -175,8 +175,6 @@ def trainEpochs(reverse, n_epochs, learning_rate, batch_size, n_layers, hidden_s
                           for _ in range(n_epochs)]
         torch.save(training_batches, '{}/training_data/{}_{}_{}.tar'.format(save_dir, n_epochs, 
                                                                             filename(reverse, 'training_batches'), batch_size))
-
-    del pairs
     # model
     checkpoint = None 
     print('Building encoder and decoder ...')
@@ -206,12 +204,9 @@ def trainEpochs(reverse, n_epochs, learning_rate, batch_size, n_layers, hidden_s
     start_epoch = 1
     perplexity = []
     print_loss = 0
-    is_best = False
-    best_loss = sys.maxsize
     if loadFilename:
         start_epoch = checkpoint['epoch'] + 1
         perplexity = checkpoint['plt']
-        del checkpoint
 
     for epoch in tqdm(range(start_epoch, n_epochs + 1)):
         training_batch = training_batches[epoch - 1]
@@ -229,17 +224,7 @@ def trainEpochs(reverse, n_epochs, learning_rate, batch_size, n_layers, hidden_s
             print('%d %d%% %.4f' % (epoch, epoch / n_epochs * 100, print_loss_avg))
             print_loss = 0
 
-        if ((epoch % save_every == 0) and (epoch >= 20000)):
-            torch.save({
-                'epoch': epoch,
-                'en': encoder.state_dict(),
-                'de': decoder.state_dict(),
-                'en_opt': encoder_optimizer.state_dict(),
-                'de_opt': decoder_optimizer.state_dict(),
-                'loss': loss,
-            }, '{}/model/{}-{}_{}/{}_{}.tar'.format(save_dir, n_layers, n_layers, hidden_size, 
-                                                    epoch, filename(reverse, 'backup_bidir_model')))
-        elif (epoch % save_every == 0):
+        if (epoch % save_every == 0):
             torch.save({
                 'epoch': epoch,
                 'en': encoder.state_dict(),
@@ -250,12 +235,3 @@ def trainEpochs(reverse, n_epochs, learning_rate, batch_size, n_layers, hidden_s
                 'plt': perplexity
             }, '{}/model/{}-{}_{}/{}.tar'.format(save_dir, n_layers, n_layers, hidden_size, 
                                                  filename(reverse, 'backup_bidir_model')))
-
-
-    torch.save({
-        'epoch': epoch,
-        'en': encoder.state_dict(),
-        'de': decoder.state_dict(),
-        'loss': loss, 
-        'plt': perplexity
-    }, '{}/model/{}-{}_{}/{}_.tar'.format(save_dir, n_layers, n_layers, hidden_size, filename(reverse, 'bidir_model')))
