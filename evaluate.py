@@ -122,15 +122,8 @@ def evaluate(encoder, decoder, voc, sentence, beam_size, max_length=MAX_LENGTH):
 
 
 def evaluateRandomly(encoder, decoder, voc, pairs, reverse, beam_size, n=10):
-    # pairs = [["what s the weather today",""], ["see you later", ""], ["when is your birthday", ""], ["where is my girlfriend", ""], ["i want to have sex with you"]]
-    # pairs = [["this is my son robert ."], ["this is very good ."], ["what s the problem ?"], ["isn t he pathetic matthew ?"], ["how old are you ?"]]
-    pairs = [["this is my son robert ."], ["this is very good ."], ["see you later ."], ["isn t he pathetic matthew ?"], ["how old are you ?"]]
-    # pairs = [["what s the problem ?"], ["see you later"], ["fuck you ."]]
-    # pairs = [["hi !"], ["how are you ?"], ["you look great ."], ["where re you going ?"], ["what is your phone number ?"], ["see you later ."]]
-    # reasonable pair = [["play with me ."
-    # for i in range(n):
-        # pair = random.choice(pairs)
-    for pair in pairs:
+    for i in range(n):
+        pair = random.choice(pairs)
         print("=============================================================")
         if reverse:
             print('>', " ".join(reversed(pair[0].split())))

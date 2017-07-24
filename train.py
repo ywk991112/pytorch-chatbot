@@ -16,7 +16,7 @@ from load import loadPrepareData
 from load import SOS_token, EOS_token, PAD_token
 from model import EncoderRNN, LuongAttnDecoderRNN, Attn
 from config import MAX_LENGTH, USE_CUDA, teacher_forcing_ratio, save_dir
-from plot import plotPerplexity
+# from plot import plotPerplexity
 
 cudnn.benchmark = True
 #############################################
@@ -233,5 +233,5 @@ def trainEpochs(reverse, n_epochs, learning_rate, batch_size, n_layers, hidden_s
                 'de_opt': decoder_optimizer.state_dict(),
                 'loss': loss,
                 'plt': perplexity
-            }, '{}/model/{}-{}_{}/{}.tar'.format(save_dir, n_layers, n_layers, hidden_size, 
-                                                 filename(reverse, 'backup_bidir_model')))
+            }, '{}/model/{}-{}_{}/{}_{}.tar'.format(save_dir, n_layers, n_layers, hidden_size, 
+                                                 epoch, filename(reverse, 'backup_bidir_model')))

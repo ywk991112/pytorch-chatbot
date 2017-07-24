@@ -49,15 +49,19 @@ def readVocs():
     print("Reading lines...")
 
     # Read the file and split into lines
-    import gzip
-    f_zip = gzip.open('data/open_subtitles.txt.gz', 'rt')
-    lines = [line for line in f_zip]
+    # import gzip
+    # f_zip = gzip.open('data/open_subtitles.txt.gz', 'rt')
+    # lines = [line for line in f_zip]
 
     # combine every two lines into pairs and normalize
+    with open('./data/jacoxu') as f:
+        content = f.readlines()
+    lines = [x.strip() for x in content]
     it = iter(lines)
-    pairs = [[normalizeString(x), normalizeString(next(it))] for x in it]
+    # pairs = [[normalizeString(x), normalizeString(next(it))] for x in it]
+    pairs = [[x, next(it)] for x in it]
 
-    voc = Voc('open_subtitles')
+    voc = Voc('hao123')
     return voc, pairs
 
 def filterPair(p):

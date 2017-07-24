@@ -23,41 +23,6 @@ class EncoderRNN(nn.Module):
         outputs = outputs[:, :, :self.hidden_size] + outputs[:, : ,self.hidden_size:] # Sum bidirectional outputs (1, batch, hidden)
         return outputs, hidden
 
-class AttnDecoderRNN(nn.Module):
-    def __init__(self, hidden_size, output_size, embedding, n_layers=1, dropout_p=0.1, max_length=MAX_LENGTH):
-        super(AttnDecoderRNN, self).__init__()
-        self.hidden_size = hidden_size
-        self.output_size = output_size
-        self.n_layers = n_layers
-        self.dropout_p = dropout_p
-        self.max_length = max_length
-
-        self.embedding = embedding
-        self.attn = nn.Linear(self.hidden_size * 3, self.max_length)
-        self.attn_combine = nn.Linear(self.hidden_size * 2, self.hidden_size)
-        self.dropout = nn.Dropout(self.dropout_p)
-        self.gru = nn.GRU(hidden_size, hidden_size * 2, n_layers)
-        self.out = nn.Linear(self.hidden_size, self.output_size)
-
-    def forward(self, input_seq, hidden, encoder_output, encoder_outputs, mask=None):
-        embedded = self.embedding(input_seq)
-        embedded = self.dropout(embedded) # embedded: (1, batch, hidden)
-
-        attn_weights = F.softmax(
-            self.attn(torch.cat((embedded[0], hidden[0]), 1))) # attn_weights: (batch, max_length)
-                                                               # encoder_outputs: (max_length, batch, hidden)
-                                                               # attn_applied: (1, batch, hidden)
-        attn_applied = (attn_weights.transpose(0, 1).unsqueeze(2).expand_as(encoder_outputs) * encoder_outputs)
-        attn_applied = attn_applied.sum(0)
-
-        output = torch.cat((embedded[0], attn_applied[0]), 1) # output: (1, batch, hidden * 2)
-        output = self.attn_combine(output).unsqueeze(0) # output: (1, batch, hidden_size)
-
-        output, hidden = self.gru(output, hidden)
-
-        output = F.log_softmax(self.out(output[0]))
-        return output, hidden, attn_weights
-
 class Attn(nn.Module):
     def __init__(self, method, hidden_size):
         super(Attn, self).__init__()
