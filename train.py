@@ -159,7 +159,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
     return sum(print_losses) / n_totals 
 
 
-def trainEpochs(reverse, n_epochs, learning_rate, batch_size, n_layers, hidden_size, 
+def trainEpochs(reverse, n_iteration, learning_rate, batch_size, n_layers, hidden_size, 
                 print_every, save_every, loadFilename=None, attn_model='dot', decoder_learning_ratio=5.0):
 
     voc, pairs = loadPrepareData()
@@ -167,13 +167,13 @@ def trainEpochs(reverse, n_epochs, learning_rate, batch_size, n_layers, hidden_s
     # training data
     training_batches = None
     try:
-        training_batches = torch.load('{}/training_data/{}_{}_{}.tar'.format(save_dir, n_epochs, 
+        training_batches = torch.load('{}/training_data/{}_{}_{}.tar'.format(save_dir, n_iteration, 
                                                                              filename(reverse, 'training_batches'), batch_size))
     except FileNotFoundError:
         print('Training pairs not found, generating ...')
         training_batches = [batch2TrainData(voc, [random.choice(pairs) for _ in range(batch_size)], reverse)
-                          for _ in range(n_epochs)]
-        torch.save(training_batches, '{}/training_data/{}_{}_{}.tar'.format(save_dir, n_epochs, 
+                          for _ in range(n_iteration)]
+        torch.save(training_batches, '{}/training_data/{}_{}_{}.tar'.format(save_dir, n_iteration, 
                                                                             filename(reverse, 'training_batches'), batch_size))
     # model
     checkpoint = None 
@@ -201,15 +201,15 @@ def trainEpochs(reverse, n_epochs, learning_rate, batch_size, n_layers, hidden_s
 
     # initialize
     print('Initializing ...')
-    start_epoch = 1
+    start_iteration = 1
     perplexity = []
     print_loss = 0
     if loadFilename:
-        start_epoch = checkpoint['epoch'] + 1
+        start_iteration = checkpoint['iteration'] + 1
         perplexity = checkpoint['plt']
 
-    for epoch in tqdm(range(start_epoch, n_epochs + 1)):
-        training_batch = training_batches[epoch - 1]
+    for iteration in tqdm(range(start_iteration, n_iteration + 1)):
+        training_batch = training_batches[iteration - 1]
         input_variable, lengths, target_variable, mask, max_target_len = training_batch
 
         loss = train(input_variable, lengths, target_variable, mask, max_target_len, encoder,
@@ -217,16 +217,16 @@ def trainEpochs(reverse, n_epochs, learning_rate, batch_size, n_layers, hidden_s
         print_loss += loss
         perplexity.append(loss)
 
-        if epoch % print_every == 0:
+        if iteration % print_every == 0:
             print_loss_avg = math.exp(print_loss / print_every)
             # perplexity.append(print_loss_avg)
-            # plotPerplexity(perplexity, epoch)
-            print('%d %d%% %.4f' % (epoch, epoch / n_epochs * 100, print_loss_avg))
+            # plotPerplexity(perplexity, iteration)
+            print('%d %d%% %.4f' % (iteration, iteration / n_iteration * 100, print_loss_avg))
             print_loss = 0
 
-        if (epoch % save_every == 0):
+        if (iteration % save_every == 0):
             torch.save({
-                'epoch': epoch,
+                'iteration': iteration,
                 'en': encoder.state_dict(),
                 'de': decoder.state_dict(),
                 'en_opt': encoder_optimizer.state_dict(),
@@ -234,4 +234,4 @@ def trainEpochs(reverse, n_epochs, learning_rate, batch_size, n_layers, hidden_s
                 'loss': loss,
                 'plt': perplexity
             }, '{}/model/{}-{}_{}/{}_{}.tar'.format(save_dir, n_layers, n_layers, hidden_size, 
-                                                 epoch, filename(reverse, 'backup_bidir_model')))
+                                                 iteration, filename(reverse, 'backup_bidir_model')))
