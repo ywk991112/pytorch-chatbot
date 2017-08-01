@@ -1,5 +1,6 @@
 # FSGC-pytorch-tutorial
-This is a pytorch seq2seq tutorial for Formosa Speech Grand Challenge, which is modified from [pratical-pytorch seq2seq-translation-batched](https://github.com/spro/practical-pytorch/blob/master/seq2seq-translation/seq2seq-translation-batched.ipynb)
+This is a pytorch seq2seq tutorial for [Formosa Speech Grand Challenge](https://fgc.stpi.narl.org.tw/activity/techai), which is modified from [pratical-pytorch seq2seq-translation-batched](https://github.com/spro/practical-pytorch/blob/master/seq2seq-translation/seq2seq-translation-batched.ipynb).  
+Here is the [tutorial]() in Chinese.
 
 ## Get started
 #### Clone the repository
