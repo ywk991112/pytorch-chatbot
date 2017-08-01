@@ -14,7 +14,7 @@ Sure. Bye.
 How are you?
 Better than ever.
 ```
-The corpus files should be placed under path like,
+The corpus files should be placed under a path like,
 ```
 FSGC-pytorch-tutorial/data/<corpus file name>
 ```
