@@ -1,5 +1,6 @@
 import torch
 import re
+import os
 import unicodedata
 
 from config import MAX_LENGTH, save_dir
@@ -82,8 +83,11 @@ def prepareData():
         voc.addSentence(pair[0])
         voc.addSentence(pair[1])
     print("Counted words:", voc.n_words)
-    torch.save(voc, '{}/training_data/{!s}.tar'.format(save_dir, 'voc'))
-    torch.save(pairs, '{}/training_data/{!s}.tar'.format(save_dir, 'pairs'))
+    directory = '{}/training_data'.format(save_dir) 
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    torch.save(voc, '{}/{!s}.tar'.format(directory, 'voc'))
+    torch.save(pairs, '{}/{!s}.tar'.format(directory, 'pairs'))
     return voc, pairs
 
 def loadPrepareData():
@@ -95,4 +99,3 @@ def loadPrepareData():
         print("Saved data not found, start preparing trianing data ...")
         voc, pairs = prepareData()
     return voc, pairs
-	

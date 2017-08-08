@@ -1,5 +1,5 @@
 import argparse
-from train import trainEpochs
+from train import trainIters
 from evaluate import runTest
 from load import Voc
 

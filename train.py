@@ -159,7 +159,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
     return sum(print_losses) / n_totals 
 
 
-def trainEpochs(reverse, n_iteration, learning_rate, batch_size, n_layers, hidden_size, 
+def trainIters(reverse, n_iteration, learning_rate, batch_size, n_layers, hidden_size, 
                 print_every, save_every, loadFilename=None, attn_model='dot', decoder_learning_ratio=5.0):
 
     voc, pairs = loadPrepareData()
@@ -225,6 +225,9 @@ def trainEpochs(reverse, n_iteration, learning_rate, batch_size, n_layers, hidde
             print_loss = 0
 
         if (iteration % save_every == 0):
+            directory = '{}/model/{}-{}_{}'.format(save_dir, n_layers, n_layers, hidden_size)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
             torch.save({
                 'iteration': iteration,
                 'en': encoder.state_dict(),
@@ -233,5 +236,4 @@ def trainEpochs(reverse, n_iteration, learning_rate, batch_size, n_layers, hidde
                 'de_opt': decoder_optimizer.state_dict(),
                 'loss': loss,
                 'plt': perplexity
-            }, '{}/model/{}-{}_{}/{}_{}.tar'.format(save_dir, n_layers, n_layers, hidden_size, 
-                                                 iteration, filename(reverse, 'backup_bidir_model')))
+            }, 'directory/{}_{}.tar'.format(iteration, filename(reverse, 'backup_bidir_model')))
