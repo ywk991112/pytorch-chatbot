@@ -237,4 +237,4 @@ def trainIters(reverse, n_iteration, learning_rate, batch_size, n_layers, hidden
                 'de_opt': decoder_optimizer.state_dict(),
                 'loss': loss,
                 'plt': perplexity
-            }, 'directory/{}_{}.tar'.format(iteration, filename(reverse, 'backup_bidir_model')))
+            }, '{}/{}_{}.tar'.format(directory, iteration, filename(reverse, 'backup_bidir_model')))
