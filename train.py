@@ -11,6 +11,7 @@ import itertools
 import random
 import math
 import sys
+import os
 from tqdm import tqdm
 from load import loadPrepareData
 from load import SOS_token, EOS_token, PAD_token
