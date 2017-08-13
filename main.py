@@ -6,8 +6,8 @@ from load import Voc
 
 def parse():
     parser = argparse.ArgumentParser(description='Attention Seq2Seq Chatbot')
-    parser.add_argument('-tr', '--train', action='store_true', help='Train the model')
-    parser.add_argument('-te', '--test', help='Test the model')
+    parser.add_argument('-tr', '--train', help='Train the model with corpus')
+    parser.add_argument('-te', '--test', help='Test the saved model')
     parser.add_argument('-l', '--load', help='Load the model and train')
     parser.add_argument('-r', '--reverse', action='store_true', help='Reverse the input sequence')
     parser.add_argument('-f', '--filter', action='store_true', help='Filter to small training data set')
@@ -41,7 +41,7 @@ def run(args):
         args.reverse, args.filter, args.iteration, args.print, args.save, args.learning_rate, \
         args.layer, args.hidden, args.batch_size, args.beam, args.input
     if args.train:
-        trainIters(reverse, n_iteration, learning_rate, batch_size,
+        trainIters(args.train, reverse, n_iteration, learning_rate, batch_size,
                     n_layers, hidden_size, print_every, save_every)
     elif args.load:
         reverse = parseFilename(args.load)

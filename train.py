@@ -160,21 +160,22 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
     return sum(print_losses) / n_totals 
 
 
-def trainIters(reverse, n_iteration, learning_rate, batch_size, n_layers, hidden_size, 
+def trainIters(corpus, reverse, n_iteration, learning_rate, batch_size, n_layers, hidden_size, 
                 print_every, save_every, loadFilename=None, attn_model='dot', decoder_learning_ratio=5.0):
 
-    voc, pairs = loadPrepareData()
+    voc, pairs = loadPrepareData(corpus)
 
     # training data
+    corpus_name = corpus.split('/')[-1].split('.')[0]
     training_batches = None
     try:
-        training_batches = torch.load('{}/training_data/{}_{}_{}.tar'.format(save_dir, n_iteration, 
+        training_batches = torch.load('{}/training_data/{}/{}_{}_{}.tar'.format(save_dir, corpus_name, n_iteration, 
                                                                              filename(reverse, 'training_batches'), batch_size))
     except FileNotFoundError:
         print('Training pairs not found, generating ...')
         training_batches = [batch2TrainData(voc, [random.choice(pairs) for _ in range(batch_size)], reverse)
                           for _ in range(n_iteration)]
-        torch.save(training_batches, '{}/training_data/{}_{}_{}.tar'.format(save_dir, n_iteration, 
+        torch.save(training_batches, '{}/training_data/{}/{}_{}_{}.tar'.format(save_dir, corpus_name, n_iteration, 
                                                                             filename(reverse, 'training_batches'), batch_size))
     # model
     checkpoint = None 

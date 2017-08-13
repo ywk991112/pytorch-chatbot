@@ -46,23 +46,18 @@ def normalizeString(s):
     s = re.sub(r"\s+", r" ", s).strip()
     return s
 
-def readVocs():
+def readVocs(corpus, corpus_name):
     print("Reading lines...")
 
-    # Read the file and split into lines
-    # import gzip
-    # f_zip = gzip.open('data/open_subtitles.txt.gz', 'rt')
-    # lines = [line for line in f_zip]
-
     # combine every two lines into pairs and normalize
-    with open('./data/jacoxu') as f:
+    with open(corpus) as f:
         content = f.readlines()
     lines = [x.strip() for x in content]
     it = iter(lines)
     # pairs = [[normalizeString(x), normalizeString(next(it))] for x in it]
     pairs = [[x, next(it)] for x in it]
 
-    voc = Voc('hao123')
+    voc = Voc(corpus_name)
     return voc, pairs
 
 def filterPair(p):
@@ -73,8 +68,8 @@ def filterPair(p):
 def filterPairs(pairs):
     return [pair for pair in pairs if filterPair(pair)]
 
-def prepareData():
-    voc, pairs = readVocs()
+def prepareData(corpus, corpus_name):
+    voc, pairs = readVocs(corpus, corpus_name)
     print("Read {!s} sentence pairs".format(len(pairs)))
     pairs = filterPairs(pairs)
     print("Trimmed to {!s} sentence pairs".format(len(pairs)))
@@ -83,19 +78,20 @@ def prepareData():
         voc.addSentence(pair[0])
         voc.addSentence(pair[1])
     print("Counted words:", voc.n_words)
-    directory = '{}/training_data'.format(save_dir) 
+    directory = '{}/training_data/{}'.format(save_dir, corpus_name) 
     if not os.path.exists(directory):
         os.makedirs(directory)
     torch.save(voc, '{}/{!s}.tar'.format(directory, 'voc'))
     torch.save(pairs, '{}/{!s}.tar'.format(directory, 'pairs'))
     return voc, pairs
 
-def loadPrepareData():
+def loadPrepareData(corpus):
+    corpus_name = corpus.split('/')[-1].split('.')[0]
     try:
         print("Start loading training data ...")
-        voc = torch.load('{}/training_data/{!s}.tar'.format(save_dir, 'voc'))
-        pairs = torch.load('{}/training_data/{!s}.tar'.format(save_dir, 'pairs'))
+        voc = torch.load('{}/training_data/{}/{!s}.tar'.format(save_dir, corpus_name, 'voc'))
+        pairs = torch.load('{}/training_data/{}/{!s}.tar'.format(save_dir, corpus_name, 'pairs'))
     except FileNotFoundError:
         print("Saved data not found, start preparing trianing data ...")
-        voc, pairs = prepareData()
+        voc, pairs = prepareData(corpus, corpus_name)
     return voc, pairs
