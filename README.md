@@ -15,6 +15,11 @@ Sure. Bye.
 How are you?
 Better than ever.
 ```
+The corpus files should be placed under a path like,
+```
+FSGC-pytorch-tutorial/data/<corpus file name>
+```
+Otherwise, the corpus file will be tracked by git.
 #### Training
 Run this command to start training, change the argument values in your own need.
 ```
