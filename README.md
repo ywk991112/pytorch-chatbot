@@ -15,14 +15,10 @@ Sure. Bye.
 How are you?
 Better than ever.
 ```
-The corpus files should be placed under a path like,
-```
-FSGC-pytorch-tutorial/data/<corpus file name>
-```
 #### Training
 Run this command to start training, change the argument values in your own need.
 ```
-python main.py -tr -la 1 -hi 512 -lr 0.0001 -it 50000 -b 64 -p 500 -s 1000
+python main.py -tr <CORPUS_FILE_PATH> -la 1 -hi 512 -lr 0.0001 -it 50000 -b 64 -p 500 -s 1000
 ```
 For more options,
 ```
