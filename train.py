@@ -166,17 +166,21 @@ def trainIters(corpus, reverse, n_iteration, learning_rate, batch_size, n_layers
     voc, pairs = loadPrepareData(corpus)
 
     # training data
-    corpus_name = corpus.split('/')[-1].split('.')[0]
+    corpus_name = os.path.split(corpus)[-1].split('.')[0]
     training_batches = None
     try:
-        training_batches = torch.load('{}/training_data/{}/{}_{}_{}.tar'.format(save_dir, corpus_name, n_iteration, 
-                                                                             filename(reverse, 'training_batches'), batch_size))
+        training_batches = torch.load(os.path.join(save_dir, 'training_data', corpus_name, 
+                                                   '{}_{}_{}.tar'.format(n_iteration, \
+                                                                         filename(reverse, 'training_batches'), \
+                                                                         batch_size)))
     except FileNotFoundError:
         print('Training pairs not found, generating ...')
         training_batches = [batch2TrainData(voc, [random.choice(pairs) for _ in range(batch_size)], reverse)
                           for _ in range(n_iteration)]
-        torch.save(training_batches, '{}/training_data/{}/{}_{}_{}.tar'.format(save_dir, corpus_name, n_iteration, 
-                                                                            filename(reverse, 'training_batches'), batch_size))
+        torch.save(training_batches, os.path.join(save_dir, 'training_data', corpus_name, 
+                                                  '{}_{}_{}.tar'.format(n_iteration, \
+                                                                        filename(reverse, 'training_batches'), \
+                                                                        batch_size)))
     # model
     checkpoint = None 
     print('Building encoder and decoder ...')
@@ -227,7 +231,7 @@ def trainIters(corpus, reverse, n_iteration, learning_rate, batch_size, n_layers
             print_loss = 0
 
         if (iteration % save_every == 0):
-            directory = '{}/model/{}-{}_{}'.format(save_dir, n_layers, n_layers, hidden_size)
+            directory = os.path.join(save_dir, 'model', corpus_name, '{}-{}_{}'.format(n_layers, n_layers, hidden_size))
             if not os.path.exists(directory):
                 os.makedirs(directory)
             torch.save({
@@ -238,4 +242,4 @@ def trainIters(corpus, reverse, n_iteration, learning_rate, batch_size, n_layers
                 'de_opt': decoder_optimizer.state_dict(),
                 'loss': loss,
                 'plt': perplexity
-            }, '{}/{}_{}.tar'.format(directory, iteration, filename(reverse, 'backup_bidir_model')))
+            }, os.path.join(directory, '{}_{}.tar'.format(iteration, filename(reverse, 'backup_bidir_model'))))

@@ -33,9 +33,9 @@ python main.py -h
 Models will be saved in `FSGC-pytorch-tutorial/save/model` while training, and this can be changed in `config.py`.  
 Evaluate the saved model with input sequences in the corpus.
 ```
-python main.py -te <MODEL_FILE_PATH>
+python main.py -te <MODEL_FILE_PATH> -c <CORPUS_FILE_PATH>
 ```
 Test the model with input sequence manually.
 ```
-python main.py -te <MODEL_FILE_PATH> -i
+python main.py -te <MODEL_FILE_PATH> -c <CORPUS_FILE_PATH> -i
 ```

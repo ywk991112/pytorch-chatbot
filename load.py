@@ -78,19 +78,19 @@ def prepareData(corpus, corpus_name):
         voc.addSentence(pair[0])
         voc.addSentence(pair[1])
     print("Counted words:", voc.n_words)
-    directory = '{}/training_data/{}'.format(save_dir, corpus_name) 
+    directory = os.path.join(save_dir, 'training_data', corpus_name) 
     if not os.path.exists(directory):
         os.makedirs(directory)
-    torch.save(voc, '{}/{!s}.tar'.format(directory, 'voc'))
-    torch.save(pairs, '{}/{!s}.tar'.format(directory, 'pairs'))
+    torch.save(voc, os.path.join(directory, '{!s}.tar'.format('voc')))
+    torch.save(pairs, os.path.join(directory, '{!s}.tar'.format('pairs')))
     return voc, pairs
 
 def loadPrepareData(corpus):
     corpus_name = corpus.split('/')[-1].split('.')[0]
     try:
         print("Start loading training data ...")
-        voc = torch.load('{}/training_data/{}/{!s}.tar'.format(save_dir, corpus_name, 'voc'))
-        pairs = torch.load('{}/training_data/{}/{!s}.tar'.format(save_dir, corpus_name, 'pairs'))
+        voc = torch.load(os.path.join(save_dir, 'training_data', corpus, 'voc.tar'))
+        pairs = torch.load(os.path.join(save_dir, 'training_data', corpus, 'pairs.tar'))
     except FileNotFoundError:
         print("Saved data not found, start preparing trianing data ...")
         voc, pairs = prepareData(corpus, corpus_name)

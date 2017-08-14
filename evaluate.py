@@ -16,28 +16,28 @@ class Sentence:
         self.last_idx = last_idx
         self.sentence_idxes =  sentence_idxes
         self.sentence_scores = sentence_scores
+
     def avgScore(self):
         if len(self.sentence_scores) == 0:
             raise ValueError("Calculate average score of sentence, but got no word")
         return sum(self.sentence_scores) / len(self.sentence_scores)
         # return mean of sentence_score
+
     def addTopk(self, topi, topv, decoder_hidden, beam_size, voc):
         topv = torch.log(topv)
         terminates, sentences = [], []
-        # print('-----------------------------------')
         for i in range(beam_size):
             if topi[0][i] == EOS_token:
                 terminates.append(([voc.index2word[idx] for idx in self.sentence_idxes] + ['<EOS>'], 
                                    self.avgScore())) # tuple(word_list, score_float 
                 continue
             idxes = self.sentence_idxes[:] # pass by value
-            # print('idx', idxes)
             scores = self.sentence_scores[:] # pass by value
             idxes.append(topi[0][i])
-            # print('afteridx', idxes)
             scores.append(topv[0][i])
             sentences.append(Sentence(decoder_hidden, topi[0][i], idxes, scores))
         return terminates, sentences
+
     def toWordScore(self, voc):
         words = []
         for i in range(len(self.sentence_idxes)):
@@ -53,8 +53,6 @@ def beam_decode(decoder, decoder_hidden, encoder_outputs, voc, beam_size, max_le
     terminal_sentences, prev_top_sentences, next_top_sentences = [], [], []
     prev_top_sentences.append(Sentence(decoder_hidden))
     for t in range(max_length):
-        # print('=================== t =', t, '====================')
-        # print([sent.sentence_idxes for sent in prev_top_sentences])
         for sentence in prev_top_sentences:
             decoder_input = Variable(torch.LongTensor([[sentence.last_idx]]))
             decoder_input = decoder_input.cuda() if USE_CUDA else decoder_input
@@ -89,8 +87,6 @@ def decode(decoder, decoder_hidden, encoder_outputs, voc, max_length=MAX_LENGTH)
         decoder_output, decoder_hidden, decoder_attn = decoder(
             decoder_input, decoder_hidden, encoder_outputs
         )
-        # print('decoder_attn', decoder_attn) #[1, 1, encoder_input_seq_len]
-        # decoder_attentions[di] = decoder_attention.data
         topv, topi = decoder_output.data.topk(3)
         ni = topi[0][0]
         if ni == EOS_token:
@@ -129,7 +125,6 @@ def evaluateRandomly(encoder, decoder, voc, pairs, reverse, beam_size, n=10):
             print('>', " ".join(reversed(pair[0].split())))
         else:
             print('>', pair[0])
-        # print('=', pair[1])
         if beam_size == 1:
             output_words, attentions = evaluate(encoder, decoder, voc, pair[0], beam_size)
             output_sentence = ' '.join(output_words)
@@ -159,9 +154,9 @@ def evaluateInput(encoder, decoder, voc, beam_size):
             print("Incorrect spelling.")
 
 
-def runTest(n_layers, hidden_size, reverse, modelFile, beam_size, input):
+def runTest(n_layers, hidden_size, reverse, modelFile, beam_size, input, corpus):
 
-    voc, pairs = loadPrepareData()
+    voc, pairs = loadPrepareData(corpus)
     embedding = nn.Embedding(voc.n_words, hidden_size)
     encoder = EncoderRNN(voc.n_words, hidden_size, embedding, n_layers)
     attn_model = 'dot'

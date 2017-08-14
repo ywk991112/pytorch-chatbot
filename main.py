@@ -9,6 +9,7 @@ def parse():
     parser.add_argument('-tr', '--train', help='Train the model with corpus')
     parser.add_argument('-te', '--test', help='Test the saved model')
     parser.add_argument('-l', '--load', help='Load the model and train')
+    parser.add_argument('-c', '--corpus', help='Test the saved model with vocabulary of the corpus')
     parser.add_argument('-r', '--reverse', action='store_true', help='Reverse the input sequence')
     parser.add_argument('-f', '--filter', action='store_true', help='Filter to small training data set')
     parser.add_argument('-i', '--input', action='store_true', help='Test the model by input the sentence')
@@ -49,7 +50,7 @@ def run(args):
                     n_layers, hidden_size, print_every, save_every, loadFilename=args.load)
     elif args.test:
         n_layers, hidden_size, reverse = parseFilename(args.test, True)
-        runTest(n_layers, hidden_size, reverse, args.test, beam_size, input)
+        runTest(n_layers, hidden_size, reverse, args.test, beam_size, input, args.corpus)
 
 
 if __name__ == '__main__':
