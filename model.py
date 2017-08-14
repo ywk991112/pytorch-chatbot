@@ -58,19 +58,19 @@ class Attn(nn.Module):
         return F.softmax(attn_energies).unsqueeze(1)
 
     def score(self, hidden, encoder_output):
-        # hidden [1, 512], encoder_output [512]
+        # hidden [1, 512], encoder_output [1, 512]
         if self.method == 'dot':
-            energy = hidden.dot(encoder_output)
+            energy = hidden.squeeze(0).dot(encoder_output.squeeze(0))
             return energy
 
         elif self.method == 'general':
             energy = self.attn(encoder_output)
-            energy = hidden.dot(energy)
+            energy = hidden.squeeze(0).dot(energy.squeeze(0))
             return energy
 
         elif self.method == 'concat':
             energy = self.attn(torch.cat((hidden, encoder_output), 1))
-            energy = self.v.dot(energy)
+            energy = self.v.squeeze(0).dot(energy.squeeze(0))
             return energy
 
 class LuongAttnDecoderRNN(nn.Module):
