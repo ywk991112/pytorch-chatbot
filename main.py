@@ -30,23 +30,21 @@ def parseFilename(filename, test=False):
     dataType = filename[-1][:-4] # remove '.tar'
     parse = dataType.split('_')
     reverse = 'reverse' in parse
-    if test:
-        layers, hidden = filename[-2].split('_')
-        n_layers = int(layers.split('-')[0])
-        hidden_size = int(hidden)
-        return n_layers, hidden_size, reverse
-    return reverse
+    layers, hidden = filename[-2].split('_')
+    n_layers = int(layers.split('-')[0])
+    hidden_size = int(hidden)
+    return n_layers, hidden_size, reverse
 
 def run(args):
     reverse, fil, n_iteration, print_every, save_every, learning_rate, n_layers, hidden_size, batch_size, beam_size, input = \
         args.reverse, args.filter, args.iteration, args.print, args.save, args.learning_rate, \
         args.layer, args.hidden, args.batch_size, args.beam, args.input
-    if args.train:
+    if args.train and not args.load:
         trainIters(args.train, reverse, n_iteration, learning_rate, batch_size,
                     n_layers, hidden_size, print_every, save_every)
     elif args.load:
-        reverse = parseFilename(args.load)
-        trainIters(reverse, n_iteration, learning_rate, batch_size,
+        n_layers, hidden_size, reverse = parseFilename(args.load)
+        trainIters(args.train, reverse, n_iteration, learning_rate, batch_size,
                     n_layers, hidden_size, print_every, save_every, loadFilename=args.load)
     elif args.test:
         n_layers, hidden_size, reverse = parseFilename(args.test, True)
