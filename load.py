@@ -50,10 +50,10 @@ def readVocs(corpus, corpus_name):
     print("Reading lines...")
 
     # combine every two lines into pairs and normalize
-    # with open(corpus) as f:
-        # content = f.readlines()
-    import gzip
-    content = gzip.open(corpus, 'rt')
+    with open(corpus) as f:
+        content = f.readlines()
+    # import gzip
+    # content = gzip.open(corpus, 'rt')
     lines = [x.strip() for x in content]
     it = iter(lines)
     # pairs = [[normalizeString(x), normalizeString(next(it))] for x in it]
