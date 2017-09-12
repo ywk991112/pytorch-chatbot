@@ -76,13 +76,12 @@ def outputVar(l, voc):
 # sort list of (input, output) pairs by input length, reverse input
 # return input, lengths for pack_padded_sequence, output_variable, mask
 def batch2TrainData(voc, pair_batch, reverse):
+    if reverse:
+        pair_batch = [pair[::-1] for pair in pair_batch]
     pair_batch.sort(key=lambda x: len(x[0].split(" ")), reverse=True)
     input_batch, output_batch = [], []
     for i in range(len(pair_batch)):
-        if reverse:
-            input_batch.append(pair_batch[i][0][::-1])
-        else:
-            input_batch.append(pair_batch[i][0])
+        input_batch.append(pair_batch[i][0])
         output_batch.append(pair_batch[i][1])
     input, lengths = inputVar(input_batch, voc)
     output, mask, max_target_len = outputVar(output_batch, voc)

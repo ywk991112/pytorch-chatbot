@@ -50,8 +50,10 @@ def readVocs(corpus, corpus_name):
     print("Reading lines...")
 
     # combine every two lines into pairs and normalize
-    with open(corpus) as f:
-        content = f.readlines()
+    # with open(corpus) as f:
+        # content = f.readlines()
+    import gzip
+    content = gzip.open(corpus, 'rt')
     lines = [x.strip() for x in content]
     it = iter(lines)
     # pairs = [[normalizeString(x), normalizeString(next(it))] for x in it]
@@ -89,8 +91,8 @@ def loadPrepareData(corpus):
     corpus_name = corpus.split('/')[-1].split('.')[0]
     try:
         print("Start loading training data ...")
-        voc = torch.load(os.path.join(save_dir, 'training_data', corpus, 'voc.tar'))
-        pairs = torch.load(os.path.join(save_dir, 'training_data', corpus, 'pairs.tar'))
+        voc = torch.load(os.path.join(save_dir, 'training_data', corpus_name, 'voc.tar'))
+        pairs = torch.load(os.path.join(save_dir, 'training_data', corpus_name, 'pairs.tar'))
     except FileNotFoundError:
         print("Saved data not found, start preparing trianing data ...")
         voc, pairs = prepareData(corpus, corpus_name)
