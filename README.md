@@ -17,7 +17,7 @@ Better than ever.
 ```
 The corpus files should be placed under a path like,
 ```
-[ytorch-chatbot/data/<corpus file name>
+pytorch-chatbot/data/<corpus file name>
 ```
 Otherwise, the corpus file will be tracked by git.
 #### Training
