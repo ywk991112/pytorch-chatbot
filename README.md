@@ -5,7 +5,7 @@ Here is the [tutorial](https://fgc.stpi.narl.org.tw/activity/videoDetail/4b11413
 ## Get started
 #### Clone the repository
 ```
-git clone https://github.com/ywk991112/FSGC-pytorch-tutorial
+git clone https://github.com/ywk991112/pytorch-chatbot
 ```
 #### Corpus
 In the corpus file, the input-output sequence pairs should be in the adjacent lines. For example, 
