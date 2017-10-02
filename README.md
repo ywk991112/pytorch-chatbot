@@ -43,3 +43,7 @@ Test the model with input sequence manually.
 ```
 python main.py -te <MODEL_FILE_PATH> -c <CORPUS_FILE_PATH> -i
 ```
+Beam search with size k.
+```
+python main.py -te <MODEL_FILE_PATH> -c <CORPUS_FILE_PATH> -be k [-i] 
+```
