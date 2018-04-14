@@ -80,7 +80,7 @@ def prepareData(corpus, corpus_name):
         voc.addSentence(pair[0])
         voc.addSentence(pair[1])
     print("Counted words:", voc.n_words)
-    directory = os.path.join(save_dir, 'training_data', corpus_name) 
+    directory = os.path.join(save_dir, 'training_data', corpus_name)
     if not os.path.exists(directory):
         os.makedirs(directory)
     torch.save(voc, os.path.join(directory, '{!s}.tar'.format('voc')))

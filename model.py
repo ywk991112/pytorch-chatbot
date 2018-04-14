@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
-import sys
 
 from config import USE_CUDA
 
@@ -19,7 +18,7 @@ class EncoderRNN(nn.Module):
         embedded = self.embedding(input_seq)
         packed = torch.nn.utils.rnn.pack_padded_sequence(embedded, input_lengths)
         outputs, hidden = self.gru(packed, hidden) # output: (seq_len, batch, hidden*n_dir)
-        outputs, output_lengths = torch.nn.utils.rnn.pad_packed_sequence(outputs)
+        outputs, _ = torch.nn.utils.rnn.pad_packed_sequence(outputs)
         outputs = outputs[:, :, :self.hidden_size] + outputs[:, : ,self.hidden_size:] # Sum bidirectional outputs (1, batch, hidden)
         return outputs, hidden
 
@@ -111,7 +110,7 @@ class LuongAttnDecoderRNN(nn.Module):
         # apply to encoder outputs to get weighted average
         attn_weights = self.attn(rnn_output, encoder_outputs) #[64, 1, 14]
         # encoder_outputs [14, 64, 512]
-        context = attn_weights.bmm(encoder_outputs.transpose(0, 1)) #[64, 1, 512] 
+        context = attn_weights.bmm(encoder_outputs.transpose(0, 1)) #[64, 1, 512]
 
         # Attentional vector using the RNN hidden state and context vector
         # concatenated together (Luong eq. 5)

@@ -34,7 +34,7 @@ def parseFilename(filename, test=False):
     return n_layers, hidden_size, reverse
 
 def run(args):
-    reverse, fil, n_iteration, print_every, save_every, learning_rate, n_layers, hidden_size, batch_size, beam_size, input = \
+    reverse, fil, n_iteration, print_every, save_every, learning_rate, n_layers, hidden_size, batch_size, beam_size, inp = \
         args.reverse, args.filter, args.iteration, args.print, args.save, args.learning_rate, \
         args.layer, args.hidden, args.batch_size, args.beam, args.input
     if args.train and not args.load:
@@ -46,7 +46,7 @@ def run(args):
                     n_layers, hidden_size, print_every, save_every, loadFilename=args.load)
     elif args.test:
         n_layers, hidden_size, reverse = parseFilename(args.test, True)
-        runTest(n_layers, hidden_size, reverse, args.test, beam_size, input, args.corpus)
+        runTest(n_layers, hidden_size, reverse, args.test, beam_size, inp, args.corpus)
 
 
 if __name__ == '__main__':

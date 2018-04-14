@@ -7,7 +7,7 @@ from load import MAX_LENGTH, loadPrepareData, Voc
 from model import *
 from config import USE_CUDA
 import sys
- 
+
 class Sentence:
     def __init__(self, decoder_hidden, last_idx=SOS_token, sentence_idxes=[], sentence_scores=[]):
         if(len(sentence_idxes) != len(sentence_scores)):
@@ -28,8 +28,8 @@ class Sentence:
         terminates, sentences = [], []
         for i in range(beam_size):
             if topi[0][i] == EOS_token:
-                terminates.append(([voc.index2word[idx] for idx in self.sentence_idxes] + ['<EOS>'], 
-                                   self.avgScore())) # tuple(word_list, score_float 
+                terminates.append(([voc.index2word[idx] for idx in self.sentence_idxes] + ['<EOS>'],
+                                   self.avgScore())) # tuple(word_list, score_float
                 continue
             idxes = self.sentence_idxes[:] # pass by value
             scores = self.sentence_scores[:] # pass by value
@@ -52,7 +52,7 @@ class Sentence:
 def beam_decode(decoder, decoder_hidden, encoder_outputs, voc, beam_size, max_length=MAX_LENGTH):
     terminal_sentences, prev_top_sentences, next_top_sentences = [], [], []
     prev_top_sentences.append(Sentence(decoder_hidden))
-    for t in range(max_length):
+    for _ in range(max_length):
         for sentence in prev_top_sentences:
             decoder_input = Variable(torch.LongTensor([[sentence.last_idx]]))
             decoder_input = decoder_input.cuda() if USE_CUDA else decoder_input
@@ -87,7 +87,7 @@ def decode(decoder, decoder_hidden, encoder_outputs, voc, max_length=MAX_LENGTH)
         decoder_output, decoder_hidden, decoder_attn = decoder(
             decoder_input, decoder_hidden, encoder_outputs
         )
-        topv, topi = decoder_output.data.topk(3)
+        _, topi = decoder_output.data.topk(3)
         ni = topi[0][0]
         if ni == EOS_token:
             decoded_words.append('<EOS>')
@@ -154,7 +154,7 @@ def evaluateInput(encoder, decoder, voc, beam_size):
             print("Incorrect spelling.")
 
 
-def runTest(n_layers, hidden_size, reverse, modelFile, beam_size, input, corpus):
+def runTest(n_layers, hidden_size, reverse, modelFile, beam_size, inp, corpus):
 
     voc, pairs = loadPrepareData(corpus)
     embedding = nn.Embedding(voc.n_words, hidden_size)
@@ -174,7 +174,7 @@ def runTest(n_layers, hidden_size, reverse, modelFile, beam_size, input, corpus)
         encoder = encoder.cuda()
         decoder = decoder.cuda()
 
-    if input:
+    if inp:
         evaluateInput(encoder, decoder, voc, beam_size)
     else:
         evaluateRandomly(encoder, decoder, voc, pairs, reverse, beam_size, 20)

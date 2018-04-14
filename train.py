@@ -4,17 +4,15 @@ import torch.nn as nn
 from torch.autograd import Variable
 from torch import optim
 import torch.backends.cudnn as cudnn
-from torch.nn.utils.rnn import pack_padded_sequence
 
 import itertools
 import random
 import math
-import sys
 import os
 from tqdm import tqdm
 from load import loadPrepareData
 from load import SOS_token, EOS_token, PAD_token
-from model import EncoderRNN, LuongAttnDecoderRNN, Attn
+from model import EncoderRNN, LuongAttnDecoderRNN
 from config import MAX_LENGTH, USE_CUDA, teacher_forcing_ratio, save_dir
 # from plot import plotPerplexity
 
@@ -42,10 +40,10 @@ def zeroPadding(l, fillvalue=PAD_token):
 
 def binaryMatrix(l, value=PAD_token):
     m = []
-    for i in range(len(l)):
+    for i, seq in enumerate(l):
         m.append([])
-        for j in range(len(l[i])):
-            if l[i][j] == PAD_token:
+        for j, token in enumerate(seq):
+            if token == PAD_token:
                 m[i].append(0)
             else:
                 m[i].append(1)
@@ -79,25 +77,25 @@ def batch2TrainData(voc, pair_batch, reverse):
         pair_batch = [pair[::-1] for pair in pair_batch]
     pair_batch.sort(key=lambda x: len(x[0].split(" ")), reverse=True)
     input_batch, output_batch = [], []
-    for i in range(len(pair_batch)):
-        input_batch.append(pair_batch[i][0])
-        output_batch.append(pair_batch[i][1])
-    input, lengths = inputVar(input_batch, voc)
+    for pair in pair_batch:
+        input_batch.append(pair[0])
+        output_batch.append(pair[1])
+    inp, lengths = inputVar(input_batch, voc)
     output, mask, max_target_len = outputVar(output_batch, voc)
-    return input, lengths, output, mask, max_target_len
+    return inp, lengths, output, mask, max_target_len
 
 #############################################
 # Training
 #############################################
 
-def maskNLLLoss(input, target, mask):
+def maskNLLLoss(inp, target, mask):
     nTotal = mask.sum()
-    crossEntropy = -torch.log(torch.gather(input, 1, target.view(-1, 1)))
+    crossEntropy = -torch.log(torch.gather(inp, 1, target.view(-1, 1)))
     loss = crossEntropy.masked_select(mask).mean()
     loss = loss.cuda() if USE_CUDA else loss
     return loss, nTotal.data[0]
 
-def train(input_variable, lengths, target_variable, mask, max_target_len, encoder, decoder, embedding, 
+def train(input_variable, lengths, target_variable, mask, max_target_len, encoder, decoder, embedding,
           encoder_optimizer, decoder_optimizer, batch_size, max_length=MAX_LENGTH):
 
     encoder_optimizer.zero_grad()
@@ -155,10 +153,10 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
     encoder_optimizer.step()
     decoder_optimizer.step()
 
-    return sum(print_losses) / n_totals 
+    return sum(print_losses) / n_totals
 
 
-def trainIters(corpus, reverse, n_iteration, learning_rate, batch_size, n_layers, hidden_size, 
+def trainIters(corpus, reverse, n_iteration, learning_rate, batch_size, n_layers, hidden_size,
                 print_every, save_every, loadFilename=None, attn_model='dot', decoder_learning_ratio=5.0):
 
     voc, pairs = loadPrepareData(corpus)
