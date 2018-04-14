@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 from torch import optim
-import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 from torch.nn.utils.rnn import pack_padded_sequence
 
@@ -39,7 +38,7 @@ def indexesFromSentence(voc, sentence):
 
 # batch_first: true -> false, i.e. shape: seq_len * batch
 def zeroPadding(l, fillvalue=PAD_token):
-    return list(itertools.zip_longest(*l, fillvalue=fillvalue)) 
+    return list(itertools.zip_longest(*l, fillvalue=fillvalue))
 
 def binaryMatrix(l, value=PAD_token):
     m = []
@@ -111,7 +110,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
 
     loss = 0
     print_losses = []
-    n_totals = 0 
+    n_totals = 0
 
     encoder_outputs, encoder_hidden = encoder(input_variable, lengths, None)
 
@@ -138,7 +137,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
             decoder_output, decoder_hidden, decoder_attn = decoder(
                 decoder_input, decoder_hidden, encoder_outputs
             )
-            topv, topi = decoder_output.data.topk(1) # [64, 1]
+            _, topi = decoder_output.data.topk(1) # [64, 1]
 
             decoder_input = Variable(torch.LongTensor([[topi[i][0] for i in range(batch_size)]]))
             decoder_input = decoder_input.cuda() if USE_CUDA else decoder_input
@@ -150,8 +149,8 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
     loss.backward()
 
     clip = 50.0
-    ec = torch.nn.utils.clip_grad_norm(encoder.parameters(), clip)
-    dc = torch.nn.utils.clip_grad_norm(decoder.parameters(), clip)
+    _ = torch.nn.utils.clip_grad_norm(encoder.parameters(), clip)
+    _ = torch.nn.utils.clip_grad_norm(decoder.parameters(), clip)
 
     encoder_optimizer.step()
     decoder_optimizer.step()
@@ -168,7 +167,7 @@ def trainIters(corpus, reverse, n_iteration, learning_rate, batch_size, n_layers
     corpus_name = os.path.split(corpus)[-1].split('.')[0]
     training_batches = None
     try:
-        training_batches = torch.load(os.path.join(save_dir, 'training_data', corpus_name, 
+        training_batches = torch.load(os.path.join(save_dir, 'training_data', corpus_name,
                                                    '{}_{}_{}.tar'.format(n_iteration, \
                                                                          filename(reverse, 'training_batches'), \
                                                                          batch_size)))
@@ -176,12 +175,12 @@ def trainIters(corpus, reverse, n_iteration, learning_rate, batch_size, n_layers
         print('Training pairs not found, generating ...')
         training_batches = [batch2TrainData(voc, [random.choice(pairs) for _ in range(batch_size)], reverse)
                           for _ in range(n_iteration)]
-        torch.save(training_batches, os.path.join(save_dir, 'training_data', corpus_name, 
+        torch.save(training_batches, os.path.join(save_dir, 'training_data', corpus_name,
                                                   '{}_{}_{}.tar'.format(n_iteration, \
                                                                         filename(reverse, 'training_batches'), \
                                                                         batch_size)))
     # model
-    checkpoint = None 
+    checkpoint = None
     print('Building encoder and decoder ...')
     embedding = nn.Embedding(voc.n_words, hidden_size)
     encoder = EncoderRNN(voc.n_words, hidden_size, embedding, n_layers)

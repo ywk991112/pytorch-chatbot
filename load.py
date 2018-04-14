@@ -65,7 +65,7 @@ def readVocs(corpus, corpus_name):
 def filterPair(p):
     # input sequences need to preserve the last word for EOS_token
     return len(p[0].split(' ')) < MAX_LENGTH and \
-        len(p[1].split(' ')) < MAX_LENGTH 
+        len(p[1].split(' ')) < MAX_LENGTH
 
 def filterPairs(pairs):
     return [pair for pair in pairs if filterPair(pair)]

@@ -3,7 +3,7 @@ from torch.autograd import Variable
 import random
 from train import indexesFromSentence
 from load import SOS_token, EOS_token
-from load import MAX_LENGTH, loadPrepareData, Voc 
+from load import MAX_LENGTH, loadPrepareData, Voc
 from model import *
 from config import USE_CUDA
 import sys
@@ -118,7 +118,7 @@ def evaluate(encoder, decoder, voc, sentence, beam_size, max_length=MAX_LENGTH):
 
 
 def evaluateRandomly(encoder, decoder, voc, pairs, reverse, beam_size, n=10):
-    for i in range(n):
+    for _ in range(n):
         pair = random.choice(pairs)
         print("=============================================================")
         if reverse:

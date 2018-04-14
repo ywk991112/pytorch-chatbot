@@ -4,7 +4,7 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 import sys
 
-from config import USE_CUDA, MAX_LENGTH
+from config import USE_CUDA
 
 class EncoderRNN(nn.Module):
     def __init__(self, input_size, hidden_size, embedding, n_layers=1, dropout=0.1):

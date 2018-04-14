@@ -1,8 +1,6 @@
 import argparse
 from train import trainIters
 from evaluate import runTest
-from load import Voc
-
 
 def parse():
     parser = argparse.ArgumentParser(description='Attention Seq2Seq Chatbot')
