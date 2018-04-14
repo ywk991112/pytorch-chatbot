@@ -6,7 +6,6 @@ from load import SOS_token, EOS_token
 from load import MAX_LENGTH, loadPrepareData, Voc
 from model import *
 from config import USE_CUDA
-import sys
 
 class Sentence:
     def __init__(self, decoder_hidden, last_idx=SOS_token, sentence_idxes=[], sentence_scores=[]):
@@ -165,7 +164,7 @@ def runTest(n_layers, hidden_size, reverse, modelFile, beam_size, inp, corpus):
     checkpoint = torch.load(modelFile)
     encoder.load_state_dict(checkpoint['en'])
     decoder.load_state_dict(checkpoint['de'])
-    
+
     # train mode set to false, effect only on dropout, batchNorm
     encoder.train(False);
     decoder.train(False);

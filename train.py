@@ -42,7 +42,7 @@ def binaryMatrix(l, value=PAD_token):
     m = []
     for i, seq in enumerate(l):
         m.append([])
-        for j, token in enumerate(seq):
+        for token in seq:
             if token == PAD_token:
                 m[i].append(0)
             else:
