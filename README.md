@@ -48,4 +48,4 @@ Beam search with size k.
 python3 main.py -te <MODEL_FILE_PATH> -c <CORPUS_FILE_PATH> -be k [-i] 
 ```
 ## TODO
-[] pytorch v0.4.0
+- [ ] pytorch v0.4.0
