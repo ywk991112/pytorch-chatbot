@@ -13,8 +13,10 @@ from tqdm import tqdm
 from load import loadPrepareData
 from load import SOS_token, EOS_token, PAD_token
 from model import EncoderRNN, LuongAttnDecoderRNN
-from config import MAX_LENGTH, USE_CUDA, teacher_forcing_ratio, save_dir
-# from plot import plotPerplexity
+from config import MAX_LENGTH, teacher_forcing_ratio, save_dir
+
+USE_CUDA = torch.cuda.is_available()
+device = torch.device("cuda" if USE_CUDA else "cpu")
 
 cudnn.benchmark = True
 #############################################
@@ -92,7 +94,7 @@ def maskNLLLoss(inp, target, mask):
     nTotal = mask.sum()
     crossEntropy = -torch.log(torch.gather(inp, 1, target.view(-1, 1)))
     loss = crossEntropy.masked_select(mask).mean()
-    loss = loss.cuda() if USE_CUDA else loss
+    loss = loss.to(device)
     return loss, nTotal.data[0]
 
 def train(input_variable, lengths, target_variable, mask, max_target_len, encoder, decoder, embedding,
@@ -101,10 +103,9 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
     encoder_optimizer.zero_grad()
     decoder_optimizer.zero_grad()
 
-    if USE_CUDA:
-        input_variable = input_variable.cuda()
-        target_variable = target_variable.cuda()
-        mask = mask.cuda()
+    input_variable = input_variable.to(device)
+    target_variable = target_variable.to(device)
+    mask = mask.to(device)
 
     loss = 0
     print_losses = []
@@ -113,7 +114,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
     encoder_outputs, encoder_hidden = encoder(input_variable, lengths, None)
 
     decoder_input = Variable(torch.LongTensor([[SOS_token for _ in range(batch_size)]]))
-    decoder_input = decoder_input.cuda() if USE_CUDA else decoder_input
+    decoder_input = decoder_input.to(device)
 
     decoder_hidden = encoder_hidden[:decoder.n_layers]
 
@@ -128,7 +129,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
             decoder_input = target_variable[t].view(1, -1) # Next input is current target
             mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t])
             loss += mask_loss
-            print_losses.append(mask_loss.data[0] * nTotal)
+            print_losses.append(mask_loss.data[0].item() * nTotal) #v0.4
             n_totals += nTotal
     else:
         for t in range(max_target_len):
@@ -138,7 +139,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
             _, topi = decoder_output.data.topk(1) # [64, 1]
 
             decoder_input = Variable(torch.LongTensor([[topi[i][0] for i in range(batch_size)]]))
-            decoder_input = decoder_input.cuda() if USE_CUDA else decoder_input
+            decoder_input = decoder_input.to(device)
             mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t])
             loss += mask_loss
             print_losses.append(mask_loss.data[0] * nTotal)
@@ -189,9 +190,8 @@ def trainIters(corpus, reverse, n_iteration, learning_rate, batch_size, n_layers
         encoder.load_state_dict(checkpoint['en'])
         decoder.load_state_dict(checkpoint['de'])
     # use cuda
-    if USE_CUDA:
-        encoder = encoder.cuda()
-        decoder = decoder.cuda()
+    encoder = encoder.to(device)
+    decoder = decoder.to(device)
 
     # optimizer
     print('Building optimizers ...')
@@ -221,8 +221,6 @@ def trainIters(corpus, reverse, n_iteration, learning_rate, batch_size, n_layers
 
         if iteration % print_every == 0:
             print_loss_avg = math.exp(print_loss / print_every)
-            # perplexity.append(print_loss_avg)
-            # plotPerplexity(perplexity, iteration)
             print('%d %d%% %.4f' % (iteration, iteration / n_iteration * 100, print_loss_avg))
             print_loss = 0
 

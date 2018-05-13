@@ -5,7 +5,9 @@ from train import indexesFromSentence
 from load import SOS_token, EOS_token
 from load import MAX_LENGTH, loadPrepareData, Voc
 from model import *
-from config import USE_CUDA
+
+USE_CUDA = torch.cuda.is_available()
+device = torch.device("cuda" if USE_CUDA else "cpu")
 
 class Sentence:
     def __init__(self, decoder_hidden, last_idx=SOS_token, sentence_idxes=[], sentence_scores=[]):
@@ -54,7 +56,7 @@ def beam_decode(decoder, decoder_hidden, encoder_outputs, voc, beam_size, max_le
     for _ in range(max_length):
         for sentence in prev_top_sentences:
             decoder_input = Variable(torch.LongTensor([[sentence.last_idx]]))
-            decoder_input = decoder_input.cuda() if USE_CUDA else decoder_input
+            decoder_input = decoder_input.to(device)
 
             decoder_output, decoder_hidden, decoder_attn = decoder(
                 decoder_input, decoder_hidden, encoder_outputs
@@ -77,7 +79,7 @@ def beam_decode(decoder, decoder_hidden, encoder_outputs, voc, beam_size, max_le
 def decode(decoder, decoder_hidden, encoder_outputs, voc, max_length=MAX_LENGTH):
 
     decoder_input = Variable(torch.LongTensor([[SOS_token]]))
-    decoder_input = decoder_input.cuda() if USE_CUDA else decoder_input
+    decoder_input = decoder_input.to(device)
 
     decoded_words = []
     decoder_attentions = torch.zeros(max_length, max_length) #TODO: or (MAX_LEN+1, MAX_LEN+1)
@@ -95,7 +97,7 @@ def decode(decoder, decoder_hidden, encoder_outputs, voc, max_length=MAX_LENGTH)
             decoded_words.append(voc.index2word[ni])
 
         decoder_input = Variable(torch.LongTensor([[ni]]))
-        decoder_input = decoder_input.cuda() if USE_CUDA else decoder_input
+        decoder_input = decoder_input.to(device)
 
     return decoded_words, decoder_attentions[:di + 1]
 
@@ -104,7 +106,7 @@ def evaluate(encoder, decoder, voc, sentence, beam_size, max_length=MAX_LENGTH):
     indexes_batch = [indexesFromSentence(voc, sentence)] #[1, seq_len]
     lengths = [len(indexes) for indexes in indexes_batch]
     input_batch = Variable(torch.LongTensor(indexes_batch), volatile=True).transpose(0, 1)
-    input_batch = input_batch.cuda() if USE_CUDA else input_batch
+    input_batch = input_batch.to(device)
 
     encoder_outputs, encoder_hidden = encoder(input_batch, lengths, None)
 
@@ -169,9 +171,8 @@ def runTest(n_layers, hidden_size, reverse, modelFile, beam_size, inp, corpus):
     encoder.train(False);
     decoder.train(False);
 
-    if USE_CUDA:
-        encoder = encoder.cuda()
-        decoder = decoder.cuda()
+    encoder = encoder.to(device)
+    decoder = decoder.to(device)
 
     if inp:
         evaluateInput(encoder, decoder, voc, beam_size)

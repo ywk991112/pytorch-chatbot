@@ -3,7 +3,8 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 
-from config import USE_CUDA
+USE_CUDA = torch.cuda.is_available()
+device = torch.device("cuda" if USE_CUDA else "cpu")
 
 class EncoderRNN(nn.Module):
     def __init__(self, input_size, hidden_size, embedding, n_layers=1, dropout=0.1):
@@ -44,8 +45,7 @@ class Attn(nn.Module):
         # Create variable to store attention energies
         attn_energies = Variable(torch.zeros(batch_size, max_len)) # B x S
 
-        if USE_CUDA:
-            attn_energies = attn_energies.cuda()
+        attn_energies = attn_energies.to(device)
 
         # For each batch of encoder outputs
         for b in range(batch_size):
@@ -54,7 +54,7 @@ class Attn(nn.Module):
                 attn_energies[b, i] = self.score(hidden[:, b], encoder_outputs[i, b].unsqueeze(0))
 
         # Normalize energies to weights in range 0 to 1, resize to 1 x B x S
-        return F.softmax(attn_energies).unsqueeze(1)
+        return F.softmax(attn_energies, dim=1).unsqueeze(1)
 
     def score(self, hidden, encoder_output):
         # hidden [1, 512], encoder_output [1, 512]
@@ -121,7 +121,7 @@ class LuongAttnDecoderRNN(nn.Module):
 
         # Finally predict next token (Luong eq. 6, without softmax)
         output = self.out(concat_output) #[64, output_size]
-        output = F.softmax(output)
+        output = F.softmax(output, dim=1)
 
         # Return final output, hidden state, and attention weights (for visualization)
         return output, hidden, attn_weights
