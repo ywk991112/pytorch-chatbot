@@ -156,7 +156,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
 
 
 def trainIters(corpus, reverse, n_iteration, learning_rate, batch_size, n_layers, hidden_size,
-                print_every, save_every, loadFilename=None, attn_model='dot', decoder_learning_ratio=5.0):
+                print_every, save_every, dropout, loadFilename=None, attn_model='dot', decoder_learning_ratio=5.0):
 
     voc, pairs = loadPrepareData(corpus)
 
@@ -180,9 +180,9 @@ def trainIters(corpus, reverse, n_iteration, learning_rate, batch_size, n_layers
     checkpoint = None
     print('Building encoder and decoder ...')
     embedding = nn.Embedding(voc.n_words, hidden_size)
-    encoder = EncoderRNN(voc.n_words, hidden_size, embedding, n_layers)
+    encoder = EncoderRNN(voc.n_words, hidden_size, embedding, n_layers, dropout)
     attn_model = 'dot'
-    decoder = LuongAttnDecoderRNN(attn_model, embedding, hidden_size, voc.n_words, n_layers)
+    decoder = LuongAttnDecoderRNN(attn_model, embedding, hidden_size, voc.n_words, n_layers, dropout)
     if loadFilename:
         checkpoint = torch.load(loadFilename)
         encoder.load_state_dict(checkpoint['en'])

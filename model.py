@@ -6,13 +6,14 @@ USE_CUDA = torch.cuda.is_available()
 device = torch.device("cuda" if USE_CUDA else "cpu")
 
 class EncoderRNN(nn.Module):
-    def __init__(self, input_size, hidden_size, embedding, n_layers=1, dropout=0.1):
+    def __init__(self, input_size, hidden_size, embedding, n_layers=1, dropout=0):
         super(EncoderRNN, self).__init__()
         self.n_layers = n_layers
         self.hidden_size = hidden_size
         self.embedding = embedding
 
-        self.gru = nn.GRU(hidden_size, hidden_size, n_layers, dropout=dropout, bidirectional=True)
+        self.gru = nn.GRU(hidden_size, hidden_size, n_layers,
+                          dropout=(0 if n_layers == 1 else dropout), bidirectional=True)
 
     def forward(self, input_seq, input_lengths, hidden=None):
         embedded = self.embedding(input_seq)
@@ -84,7 +85,7 @@ class LuongAttnDecoderRNN(nn.Module):
         # Define layers
         self.embedding = embedding
         self.embedding_dropout = nn.Dropout(dropout)
-        self.gru = nn.GRU(hidden_size, hidden_size, n_layers, dropout=dropout)
+        self.gru = nn.GRU(hidden_size, hidden_size, n_layers, dropout=(0 if n_layers == 1 else dropout))
         self.concat = nn.Linear(hidden_size * 2, hidden_size)
         self.out = nn.Linear(hidden_size, output_size)
 
