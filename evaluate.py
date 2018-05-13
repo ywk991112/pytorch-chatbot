@@ -20,8 +20,8 @@ class Sentence:
     def avgScore(self):
         if len(self.sentence_scores) == 0:
             raise ValueError("Calculate average score of sentence, but got no word")
-        return sum(self.sentence_scores) / len(self.sentence_scores)
         # return mean of sentence_score
+        return sum(self.sentence_scores) / len(self.sentence_scores)
 
     def addTopk(self, topi, topv, decoder_hidden, beam_size, voc):
         topv = torch.log(topv)
@@ -57,7 +57,7 @@ def beam_decode(decoder, decoder_hidden, encoder_outputs, voc, beam_size, max_le
             decoder_input = torch.LongTensor([[sentence.last_idx]])
             decoder_input = decoder_input.to(device)
 
-            decoder_output, decoder_hidden, decoder_attn = decoder(
+            decoder_output, decoder_hidden, _ = decoder(
                 decoder_input, decoder_hidden, encoder_outputs
             )
             topv, topi = decoder_output.topk(beam_size)
@@ -126,7 +126,7 @@ def evaluateRandomly(encoder, decoder, voc, pairs, reverse, beam_size, n=10):
         else:
             print('>', pair[0])
         if beam_size == 1:
-            output_words, attentions = evaluate(encoder, decoder, voc, pair[0], beam_size)
+            output_words, _ = evaluate(encoder, decoder, voc, pair[0], beam_size)
             output_sentence = ' '.join(output_words)
             print('<', output_sentence)
         else:
@@ -142,7 +142,7 @@ def evaluateInput(encoder, decoder, voc, beam_size):
             pair = input('> ')
             if pair == 'q': break
             if beam_size == 1:
-                output_words, attentions = evaluate(encoder, decoder, voc, pair, beam_size)
+                output_words, _ = evaluate(encoder, decoder, voc, pair, beam_size)
                 output_sentence = ' '.join(output_words)
                 print('<', output_sentence)
             else:

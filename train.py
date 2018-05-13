@@ -121,7 +121,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
     # Run through decoder one time step at a time
     if use_teacher_forcing:
         for t in range(max_target_len):
-            decoder_output, decoder_hidden, decoder_attn = decoder(
+            decoder_output, decoder_hidden, _ = decoder(
                 decoder_input, decoder_hidden, encoder_outputs
             )
             decoder_input = target_variable[t].view(1, -1) # Next input is current target
