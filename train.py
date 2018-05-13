@@ -93,7 +93,7 @@ def maskNLLLoss(inp, target, mask):
     crossEntropy = -torch.log(torch.gather(inp, 1, target.view(-1, 1)))
     loss = crossEntropy.masked_select(mask).mean()
     loss = loss.to(device)
-    return loss, nTotal.data[0]
+    return loss, nTotal.item()
 
 def train(input_variable, lengths, target_variable, mask, max_target_len, encoder, decoder, embedding,
           encoder_optimizer, decoder_optimizer, batch_size, max_length=MAX_LENGTH):
@@ -127,20 +127,20 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
             decoder_input = target_variable[t].view(1, -1) # Next input is current target
             mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t])
             loss += mask_loss
-            print_losses.append(mask_loss.data[0].item() * nTotal) #v0.4
+            print_losses.append(mask_loss.item() * nTotal) #v0.4
             n_totals += nTotal
     else:
         for t in range(max_target_len):
             decoder_output, decoder_hidden, decoder_attn = decoder(
                 decoder_input, decoder_hidden, encoder_outputs
             )
-            _, topi = decoder_output.data.topk(1) # [64, 1]
+            _, topi = decoder_output.topk(1) # [64, 1]
 
             decoder_input = torch.LongTensor([[topi[i][0] for i in range(batch_size)]])
             decoder_input = decoder_input.to(device)
             mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t])
             loss += mask_loss
-            print_losses.append(mask_loss.data[0] * nTotal)
+            print_losses.append(mask_loss.item() * nTotal)
             n_totals += nTotal
 
     loss.backward()

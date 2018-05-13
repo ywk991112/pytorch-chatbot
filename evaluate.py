@@ -60,7 +60,7 @@ def beam_decode(decoder, decoder_hidden, encoder_outputs, voc, beam_size, max_le
             decoder_output, decoder_hidden, decoder_attn = decoder(
                 decoder_input, decoder_hidden, encoder_outputs
             )
-            topv, topi = decoder_output.data.topk(beam_size)
+            topv, topi = decoder_output.topk(beam_size)
             term, top = sentence.addTopk(topi, topv, decoder_hidden, beam_size, voc)
             terminal_sentences.extend(term)
             next_top_sentences.extend(top)
@@ -87,7 +87,7 @@ def decode(decoder, decoder_hidden, encoder_outputs, voc, max_length=MAX_LENGTH)
         decoder_output, decoder_hidden, decoder_attn = decoder(
             decoder_input, decoder_hidden, encoder_outputs
         )
-        _, topi = decoder_output.data.topk(3)
+        _, topi = decoder_output.topk(3)
         ni = topi[0][0]
         if ni == EOS_token:
             decoded_words.append('<EOS>')
