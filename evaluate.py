@@ -93,7 +93,7 @@ def decode(decoder, decoder_hidden, encoder_outputs, voc, max_length=MAX_LENGTH)
             decoded_words.append('<EOS>')
             break
         else:
-            decoded_words.append(voc.index2word[ni])
+            decoded_words.append(voc.index2word[ni.item()])
 
         decoder_input = torch.LongTensor([[ni]])
         decoder_input = decoder_input.to(device)
@@ -104,7 +104,6 @@ def decode(decoder, decoder_hidden, encoder_outputs, voc, max_length=MAX_LENGTH)
 def evaluate(encoder, decoder, voc, sentence, beam_size, max_length=MAX_LENGTH):
     indexes_batch = [indexesFromSentence(voc, sentence)] #[1, seq_len]
     lengths = [len(indexes) for indexes in indexes_batch]
-    #TODO: no_grad
     input_batch = torch.LongTensor(indexes_batch).transpose(0, 1)
     input_batch = input_batch.to(device)
 
@@ -156,6 +155,7 @@ def evaluateInput(encoder, decoder, voc, beam_size):
 
 
 def runTest(n_layers, hidden_size, reverse, modelFile, beam_size, inp, corpus):
+    torch.set_grad_enabled(False)
 
     voc, pairs = loadPrepareData(corpus)
     embedding = nn.Embedding(voc.n_words, hidden_size)
