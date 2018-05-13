@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
 import torch.nn.functional as F
 
 USE_CUDA = torch.cuda.is_available()
@@ -43,8 +42,7 @@ class Attn(nn.Module):
         batch_size = encoder_outputs.size(1)
 
         # Create variable to store attention energies
-        attn_energies = Variable(torch.zeros(batch_size, max_len)) # B x S
-
+        attn_energies = torch.zeros(batch_size, max_len) # B x S
         attn_energies = attn_energies.to(device)
 
         # For each batch of encoder outputs

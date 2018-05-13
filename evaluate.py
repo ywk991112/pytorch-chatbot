@@ -1,5 +1,4 @@
 import torch
-from torch.autograd import Variable
 import random
 from train import indexesFromSentence
 from load import SOS_token, EOS_token
@@ -55,7 +54,7 @@ def beam_decode(decoder, decoder_hidden, encoder_outputs, voc, beam_size, max_le
     prev_top_sentences.append(Sentence(decoder_hidden))
     for _ in range(max_length):
         for sentence in prev_top_sentences:
-            decoder_input = Variable(torch.LongTensor([[sentence.last_idx]]))
+            decoder_input = torch.LongTensor([[sentence.last_idx]])
             decoder_input = decoder_input.to(device)
 
             decoder_output, decoder_hidden, decoder_attn = decoder(
@@ -78,7 +77,7 @@ def beam_decode(decoder, decoder_hidden, encoder_outputs, voc, beam_size, max_le
 
 def decode(decoder, decoder_hidden, encoder_outputs, voc, max_length=MAX_LENGTH):
 
-    decoder_input = Variable(torch.LongTensor([[SOS_token]]))
+    decoder_input = torch.LongTensor([[SOS_token]])
     decoder_input = decoder_input.to(device)
 
     decoded_words = []
@@ -96,7 +95,7 @@ def decode(decoder, decoder_hidden, encoder_outputs, voc, max_length=MAX_LENGTH)
         else:
             decoded_words.append(voc.index2word[ni])
 
-        decoder_input = Variable(torch.LongTensor([[ni]]))
+        decoder_input = torch.LongTensor([[ni]])
         decoder_input = decoder_input.to(device)
 
     return decoded_words, decoder_attentions[:di + 1]
@@ -105,7 +104,8 @@ def decode(decoder, decoder_hidden, encoder_outputs, voc, max_length=MAX_LENGTH)
 def evaluate(encoder, decoder, voc, sentence, beam_size, max_length=MAX_LENGTH):
     indexes_batch = [indexesFromSentence(voc, sentence)] #[1, seq_len]
     lengths = [len(indexes) for indexes in indexes_batch]
-    input_batch = Variable(torch.LongTensor(indexes_batch), volatile=True).transpose(0, 1)
+    #TODO: no_grad
+    input_batch = torch.LongTensor(indexes_batch).transpose(0, 1)
     input_batch = input_batch.to(device)
 
     encoder_outputs, encoder_hidden = encoder(input_batch, lengths, None)

@@ -1,7 +1,5 @@
-# raise ValueError("deal with Variable requires_grad, and .cuda()")
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
 from torch import optim
 import torch.backends.cudnn as cudnn
 
@@ -57,7 +55,7 @@ def inputVar(l, voc):
     indexes_batch = [indexesFromSentence(voc, sentence) for sentence in l]
     lengths = [len(indexes) for indexes in indexes_batch]
     padList = zeroPadding(indexes_batch)
-    padVar = Variable(torch.LongTensor(padList))
+    padVar = torch.LongTensor(padList)
     return padVar, lengths
 
 # convert to index, add EOS, zero padding
@@ -67,8 +65,8 @@ def outputVar(l, voc):
     max_target_len = max([len(indexes) for indexes in indexes_batch])
     padList = zeroPadding(indexes_batch)
     mask = binaryMatrix(padList)
-    mask = Variable(torch.ByteTensor(mask))
-    padVar = Variable(torch.LongTensor(padList))
+    mask = torch.ByteTensor(mask)
+    padVar = torch.LongTensor(padList)
     return padVar, mask, max_target_len
 
 # pair_batch is a list of (input, output) with length batch_size
@@ -113,7 +111,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
 
     encoder_outputs, encoder_hidden = encoder(input_variable, lengths, None)
 
-    decoder_input = Variable(torch.LongTensor([[SOS_token for _ in range(batch_size)]]))
+    decoder_input = torch.LongTensor([[SOS_token for _ in range(batch_size)]])
     decoder_input = decoder_input.to(device)
 
     decoder_hidden = encoder_hidden[:decoder.n_layers]
@@ -138,7 +136,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
             )
             _, topi = decoder_output.data.topk(1) # [64, 1]
 
-            decoder_input = Variable(torch.LongTensor([[topi[i][0] for i in range(batch_size)]]))
+            decoder_input = torch.LongTensor([[topi[i][0] for i in range(batch_size)]])
             decoder_input = decoder_input.to(device)
             mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t])
             loss += mask_loss
