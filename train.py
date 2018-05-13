@@ -146,8 +146,8 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
     loss.backward()
 
     clip = 50.0
-    _ = torch.nn.utils.clip_grad_norm(encoder.parameters(), clip)
-    _ = torch.nn.utils.clip_grad_norm(decoder.parameters(), clip)
+    _ = torch.nn.utils.clip_grad_norm_(encoder.parameters(), clip)
+    _ = torch.nn.utils.clip_grad_norm_(decoder.parameters(), clip)
 
     encoder_optimizer.step()
     decoder_optimizer.step()
