@@ -52,11 +52,12 @@ class Sentence:
 def beam_decode(decoder, decoder_hidden, encoder_outputs, voc, beam_size, max_length=MAX_LENGTH):
     terminal_sentences, prev_top_sentences, next_top_sentences = [], [], []
     prev_top_sentences.append(Sentence(decoder_hidden))
-    for _ in range(max_length):
+    for i in range(max_length):
         for sentence in prev_top_sentences:
             decoder_input = torch.LongTensor([[sentence.last_idx]])
             decoder_input = decoder_input.to(device)
 
+            decoder_hidden = sentence.decoder_hidden
             decoder_output, decoder_hidden, _ = decoder(
                 decoder_input, decoder_hidden, encoder_outputs
             )
