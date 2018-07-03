@@ -28,7 +28,7 @@ class Sentence:
         terminates, sentences = [], []
         for i in range(beam_size):
             if topi[0][i] == EOS_token:
-                terminates.append(([voc.index2word[idx] for idx in self.sentence_idxes] + ['<EOS>'],
+                terminates.append(([voc.index2word[idx.item()] for idx in self.sentence_idxes] + ['<EOS>'],
                                    self.avgScore())) # tuple(word_list, score_float
                 continue
             idxes = self.sentence_idxes[:] # pass by value
@@ -44,7 +44,7 @@ class Sentence:
             if self.sentence_idxes[i] == EOS_token:
                 words.append('<EOS>')
             else:
-                words.append(voc.index2word[self.sentence_idxes[i]])
+                words.append(voc.index2word[self.sentence_idxes[i].item()])
         if self.sentence_idxes[-1] != EOS_token:
             words.append('<EOS>')
         return (words, self.avgScore())
