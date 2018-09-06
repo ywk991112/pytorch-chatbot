@@ -27,7 +27,7 @@ pytorch-chatbot/data/<corpus file name>
 Otherwise, the corpus file will be tracked by git.
 #### Pretrained Model
 The pretrained model on [movie\_subtitles corpus](https://www.space.ntu.edu.tw/navigate/s/229EDD285D994B82B72CEDE5B5CA0CE0QQY) with an bidirectional rnn layer and
-hidden size 512 can be download in [this link](https://www.space.ntu.edu.tw/navigate/s/D287C8C95A0B4877B8666A45D5D318C0QQY).
+hidden size 512 can be downloaded in [this link](https://www.space.ntu.edu.tw/navigate/s/D287C8C95A0B4877B8666A45D5D318C0QQY).
 The pretrained model file should be placed in directory as followed.
 ```
 mkdir -p save/model/movie_subtitles/1-1_512
