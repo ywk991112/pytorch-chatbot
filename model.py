@@ -120,7 +120,6 @@ class LuongAttnDecoderRNN(nn.Module):
 
         # Finally predict next token (Luong eq. 6, without softmax)
         output = self.out(concat_output) #[64, output_size]
-        output = F.softmax(output, dim=1)
 
         # Return final output, hidden state, and attention weights (for visualization)
         return output, hidden, attn_weights
