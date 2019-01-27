@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch import optim
 import torch.backends.cudnn as cudnn
 
@@ -88,13 +89,6 @@ def batch2TrainData(voc, pair_batch, reverse):
 # Training
 #############################################
 
-def maskNLLLoss(inp, target, mask):
-    nTotal = mask.sum()
-    crossEntropy = -torch.log(torch.gather(inp, 1, target.view(-1, 1)))
-    loss = crossEntropy.masked_select(mask).mean()
-    loss = loss.to(device)
-    return loss, nTotal.item()
-
 def train(input_variable, lengths, target_variable, mask, max_target_len, encoder, decoder, embedding,
           encoder_optimizer, decoder_optimizer, batch_size, max_length=MAX_LENGTH):
 
@@ -125,10 +119,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
                 decoder_input, decoder_hidden, encoder_outputs
             )
             decoder_input = target_variable[t].view(1, -1) # Next input is current target
-            mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t])
-            loss += mask_loss
-            print_losses.append(mask_loss.item() * nTotal) #v0.4
-            n_totals += nTotal
+            loss += F.cross_entropy(decoder_output, target_variable[t], ignore_index=EOS_token)
     else:
         for t in range(max_target_len):
             decoder_output, decoder_hidden, decoder_attn = decoder(
@@ -138,10 +129,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
 
             decoder_input = torch.LongTensor([[topi[i][0] for i in range(batch_size)]])
             decoder_input = decoder_input.to(device)
-            mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t])
-            loss += mask_loss
-            print_losses.append(mask_loss.item() * nTotal)
-            n_totals += nTotal
+            loss += F.cross_entropy(decoder_output, target_variable[t], ignore_index=EOS_token)
 
     loss.backward()
 
@@ -152,7 +140,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
     encoder_optimizer.step()
     decoder_optimizer.step()
 
-    return sum(print_losses) / n_totals
+    return loss.item() / max_target_len 
 
 
 def trainIters(corpus, reverse, n_iteration, learning_rate, batch_size, n_layers, hidden_size,
