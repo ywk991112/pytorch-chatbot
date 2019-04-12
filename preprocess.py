@@ -56,32 +56,45 @@ def selectSet(description, sets, directory):
     tr_set = [join(directory, sets[int(t)]) for t in tr_set.split(' ')]
     return tr_set
 
-def readFile(files):
+# remove sequence with length greater than max_length
+def filterPair(l, max_len):
+    tmp = []
+    for i, j in zip(l[0::2], l[1::2]):
+        # input sequences need to preserve the last word for EOS_token, so '<' instead of '<='.
+        if len(i.split(' ')) < max_len and \
+                len(j.split(' ')) < max_len:
+            tmp.append(i)
+            tmp.append(j)
+    return tmp
+
+def readFile(files, max_len):
     lines = []
     for f in files:
         with open(f) as fs:
             lines += fs.read().splitlines()
+    if max_len:
+        lines = filterPair(lines, max_len)
     return lines
 
 # Generate Vocabulary
-def genVoc(args, sets):
-    tr_set = selectSet('Select training dataset to generate vocabulary.', sets, args.data_dir)
-    tr_lines = readFile(tr_set)
-    if args.normalize:
+def genVoc(config, sets):
+    tr_set = selectSet('Select training dataset to generate vocabulary.', sets, config['data_dir'])
+    tr_lines = readFile(tr_set, config['max_len'])
+    if config['normalize']:
         tr_lines = [normalizeString(x) for x in tr_lines]
-    voc = Voc(args.size, tr_lines)
-    with open(join(args.save_dir, 'voc.pkl'), 'wb') as f:
+    voc = Voc(config['size'], tr_lines)
+    with open(join(config['save_dir'], 'voc.pkl'), 'wb') as f:
         pickle.dump(voc, f)
     return voc
 
 # Encode Corpus
-def encode(args, sets, voc):
+def encode(config, sets, voc):
     def toIndex(line):
         return [voc.getIndex(x) for x in line.split(' ')]
-    enc_set = selectSet('Select dataset to encode.', sets, args.data_dir)
+    enc_set = selectSet('Select dataset to encode.', sets, config['data_dir'])
     for f in enc_set:
-        enc_lines = readFile([f])
-        if args.normalize:
+        enc_lines = readFile([f], config['max_len'])
+        if config['normalize']:
             enc_lines = [normalizeString(x) for x in enc_lines]
         enc_lines = [toIndex(x) for x in enc_lines]
         # sort the enc_lines by input(odd lines) length
@@ -90,24 +103,22 @@ def encode(args, sets, voc):
         # save to pickle file
         _, file_name = os.path.split(f)
         bn = os.path.splitext(file_name)[0]
-        with open(join(args.save_dir, bn+'.pkl'), 'wb') as fs:
+        with open(join(config['save_dir'], bn+'.pkl'), 'wb') as fs:
             pickle.dump(sorted_enc_lines, fs)
-        with open(join(args.save_dir, 'config.yaml'), 'w') as fs:
-            yaml.dump(vars(args), fs, default_flow_style=False)
+        with open(join(config['save_dir'], 'config.yaml'), 'w') as fs:
+            yaml.dump(config, fs, default_flow_style=False)
 
-def preprocess(args):
+def preprocess(config):
     print("Preprocessing...")
-    if not os.path.isdir(args.save_dir):
-        os.makedirs(args.save_dir)
-    sets = [d for d in os.listdir(args.data_dir)]
-    voc = genVoc(args, sets)
-    encode(args, sets, voc)
+    if not os.path.isdir(config['save_dir']):
+        os.makedirs(config['save_dir'])
+    sets = [d for d in os.listdir(config['data_dir'])]
+    voc = genVoc(config, sets)
+    encode(config, sets, voc)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate vocabulary and turn corpus into sequence of indices.')
-    parser.add_argument('--data_dir', type=str, help='Corpus directory')
-    parser.add_argument('--save_dir', type=str, help='Directory for saving generated data.')
-    parser.add_argument('--size', default=10000, type=int, help='Size of the vocabulary.')
-    parser.add_argument('--normalize', action='store_true', help='Normalize the strings.')
-    args = parser.parse_args()
-    preprocess(args)
+    parser.add_argument('--config', type=str, help='Config file')
+    config = parser.parse_args()
+    config = yaml.load(open(config.config, 'r'))
+    preprocess(config['preprocess'])
