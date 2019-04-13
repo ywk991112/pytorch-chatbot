@@ -10,7 +10,7 @@ model:
   attention: dot                        # attention mechanism(dot / general / concat)
 solver:
   teacher_forcing_ratio: 1.0
-  train_set: []
+  train_set: ['open_subtitles']
   batch_size: 64
   total_step: 50000
   valid_set: []
