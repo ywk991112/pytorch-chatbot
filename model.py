@@ -5,9 +5,9 @@ import torch.nn.functional as F
 USE_CUDA = torch.cuda.is_available()
 device = torch.device("cuda" if USE_CUDA else "cpu")
 
-class EncoderRNN(nn.Module):
+class Encoder(nn.Module):
     def __init__(self, input_size, hidden_size, embedding, n_layers=1, dropout=0):
-        super(EncoderRNN, self).__init__()
+        super(Encoder, self).__init__()
         self.n_layers = n_layers
         self.hidden_size = hidden_size
         self.embedding = embedding
@@ -71,9 +71,9 @@ class Attn(nn.Module):
             energy = self.v.squeeze(0).dot(energy.squeeze(0))
             return energy
 
-class LuongAttnDecoderRNN(nn.Module):
+class Decoder(nn.Module):
     def __init__(self, attn_model, embedding, hidden_size, output_size, n_layers=1, dropout=0.1):
-        super(LuongAttnDecoderRNN, self).__init__()
+        super(Decoder, self).__init__()
 
         # Keep for reference
         self.attn_model = attn_model
@@ -123,3 +123,9 @@ class LuongAttnDecoderRNN(nn.Module):
 
         # Return final output, hidden state, and attention weights (for visualization)
         return output, hidden, attn_weights
+
+def get_model(voc_size, n_layers, hidden_size, bidir, attn, dropout):
+    embedding = nn.Embedding(voc_size, hidden_size)
+    encoder = Encoder(voc_size, hidden_size, embedding, n_layers, dropout)
+    decoder = Decoder(attn, embedding, hidden_size, voc_size, n_layers, dropout)
+    return encoder, decoder

@@ -33,7 +33,7 @@ def collate_fn(batch):
     inp_seqs, out_seqs = pad(inp_seqs), pad(out_seqs)
     return inp_seqs, out_seqs, lens
 
-def getloader(config, mode):
+def get_loader(config, mode):
     bs = config['solver']['batch_size']
     if mode == 'train':
         data_set = config['solver']['train_set']
@@ -50,7 +50,7 @@ def getloader(config, mode):
     else:
         raise NotImplementedError
     dataset = CorpusDataset(config['preprocess']['save_dir'], data_set, batch_size=bs, drop_last=drop_last)
-    return DataLoader(dataset, batch_size=1, collate_fn=collate_fn,
+    return DataLoader(dataset, batch_size=1, collate_fn=collate_fn, pin_memory=True,
                       shuffle=shuffle, num_workers=4)
 
 if __name__ == '__main__':
@@ -60,4 +60,4 @@ if __name__ == '__main__':
     parser.add_argument('--config', type=str, help='Config file')
     config = parser.parse_args()
     config = yaml.load(open(config.config, 'r'))
-    dl = getloader(config, 'train')
+    dl = get_loader(config, 'train')
