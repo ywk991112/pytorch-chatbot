@@ -77,6 +77,7 @@ def filterPair(l, max_len):
                 len(j.split(' ')) < max_len:
             tmp.append(i)
             tmp.append(j)
+    print("{:.0f} pairs trimmed to {:.0f} pairs".format(len(l)/2, len(tmp)/2))
     return tmp
 
 def readFile(files, max_len):

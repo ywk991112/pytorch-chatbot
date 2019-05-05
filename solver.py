@@ -5,21 +5,26 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from tensorboardX import SummaryWriter
+from joblib import Parallel, delayed
 from tqdm import tqdm
 from model import get_model 
 from dataloader import get_loader
+from preprocess import Voc
+from rouge import rouge_n
 
 class Solver():
     def __init__(self, args, config):
         self.args = args
         self.config = config
         self.set_model()
-        if self.args.load:
-            self.load_checkpoint(self.args.load)
         USE_CUDA = torch.cuda.is_available() and not args.use_cpu
         self.device = torch.device("cuda" if USE_CUDA else "cpu")
         self.encoder.to(self.device)
         self.decoder.to(self.device)
+        self.iteration = 0 
+        self.best_valid_loss = 9e10 
+        if self.args.load:
+            self.load_checkpoint(self.args.load)
         self.mkdir()
         if args.test:
             self.test_loader = get_loader(config, 'test') 
@@ -31,8 +36,6 @@ class Solver():
             self.n_iter     = self.config['solver']['n_iter']
             self.log_step   = self.config['solver']['log_step']
             self.valid_step = self.config['solver']['valid_step']
-        self.iteration = 0 
-        self.best_valid_loss = 9e10 
 
     def get_optim(self, paras, ratio=1):
         use_apex = self.config['optimizer']['apex']
@@ -54,6 +57,8 @@ class Solver():
             self.decoder = nn.DataParallel(self.decoder)
         self.enc_opt = self.get_optim(self.encoder.parameters())
         self.dec_opt = self.get_optim(self.decoder.parameters(), self.config['optimizer']['decoder_learning_ratio'])
+        self.voc = Voc()
+        self.voc.load_file(os.path.join(self.config['preprocess']['save_dir'], 'voc.pkl'))
 
     def load_checkpoint(self, ckp_path):
         print("=> Loading Checkpoint '{}'".format(ckp_path))
@@ -113,6 +118,13 @@ class Solver():
 
         return decoder_output
 
+    def rouge_n(self, decoder_output, target_seq, n):
+        _, pred_seq = torch.max(decoder_output.permute(1, 0, 2), -1)
+        pred_seq = pred_seq.cpu()
+        target_seq = target_seq.permute(1, 0).cpu()
+        rouge_scores = Parallel(n_jobs=-1)(delayed(rouge_n)(p, r, 1) for (p, r) in zip(pred_seq, target_seq))
+        return len(rouge_scores), sum(rouge_scores)
+
     def index2word(self, tensor):
         tensor = tensor.permute(1, 0)
         from preprocess import Voc
@@ -150,6 +162,10 @@ class Solver():
                     perplexity = torch.exp(loss).item()
                     self.log.add_scalars('perplexity', {'train': perplexity}, self.iteration)
 
+                    n, tr_rouge_1 = self.rouge_n(decoder_output, target_seq, 1)
+                    tr_rouge_1 = tr_rouge_1 / n 
+                    self.log.add_scalars('rouge_1', {'train': tr_rouge_1}, self.iteration)
+
                 if self.iteration % self.valid_step == 0:
                     with torch.no_grad():
                         self.valid()
@@ -160,17 +176,49 @@ class Solver():
         pbar.close()
 
     def valid(self):
+        def index2word(tensor):
+            index_list = tensor.permute(1, 0).tolist()
+            tmp = []
+            for sample in index_list:
+                tmp1 = []
+                for index in sample:
+                    if (index == 1) or (index == 2):
+                        break
+                    tmp1.append(self.voc.index2word[index])
+                tmp.append(' '.join(tmp1))
+            return tmp
+
         total_loss = 0
+        total_n = 0
+        total_rouge_1 = 0
         for input_seq, target_seq, lens in self.valid_loader:
             input_seq = input_seq.to(self.device)
             target_seq = target_seq.to(self.device)
             decoder_output = self.model_forward(input_seq, lens, target_seq)
-            loss = F.cross_entropy(decoder_output.permute(0, 2, 1), target_seq, ignore_index=2)
+            loss = F.cross_entropy(decoder_output.permute(0, 2, 1), target_seq, ignore_index=2, reduction='sum')
             total_loss += loss
-        total_loss /= len(self.valid_loader)
+            n, tr_rouge_1 = self.rouge_n(decoder_output, target_seq, 1)
+            total_n += n
+            total_rouge_1 += tr_rouge_1
+        valid_rouge_1 = total_rouge_1 / total_n
+        valid_loss = total_loss / total_n 
 
-        perplexity = torch.exp(total_loss).item()
+        perplexity = torch.exp(valid_loss).item()
         self.log.add_scalars('perplexity', {'valid': perplexity}, self.iteration)
+        self.log.add_scalars('rouge_1', {'valid': valid_rouge_1}, self.iteration)
+
+        for input_seq, target_seq, lens in self.valid_loader:
+            input_seq, target_seq, lens = input_seq[:, :10], target_seq[:, :10], lens[:10]
+            input_seq = input_seq.to(self.device)
+            target_seq = target_seq.to(self.device)
+            decoder_output = self.model_forward(input_seq, lens, target_seq)
+            _, topi = decoder_output.topk(1) # [64, 1]
+            input_seq, target_seq, topi = map(index2word, (input_seq, target_seq, topi.squeeze()))
+            for idx, (i, t, o) in enumerate(zip(input_seq, target_seq, topi)):
+                self.log.add_text('text',
+                                  'A&nbsp;&nbsp;&nbsp;&nbsp;: {}  \nB&nbsp;&nbsp;&nbsp;&nbsp;:{}  \nAns:{}'.format(i, o, t),
+                                  self.iteration)
+            break
 
         is_best = True if total_loss < self.best_valid_loss else False
         self.best_valid_loss = min(total_loss, self.best_valid_loss)

@@ -19,7 +19,7 @@ optimizer:
 solver:
   n_iter: 50000
   teacher_forcing_ratio: 0.75
-  train_set: ['open_subtitles']
+  train_set: ['open_subtitles_train']
   batch_size: 64
   valid_set: ['open_subtitles_valid']
   valid_step: 500
