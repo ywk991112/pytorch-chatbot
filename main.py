@@ -29,6 +29,6 @@ if __name__ == '__main__':
 
     solver = Solver(args, config)
     if args.test:
-        pass
+        solver.test()
     else:
         solver.train()

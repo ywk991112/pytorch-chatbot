@@ -25,9 +25,11 @@ class Solver():
         if self.args.load:
             self.load_checkpoint(self.args.load)
         self.mkdir()
+        evaluators = self.config['solver']['evaluators']
         if args.test:
             self.test_loader = get_loader(config, 'test') 
             self.beam_size = self.config['solver']['beam_size']
+            self.evaluators = [get_evaluator(e) for e in evaluators]
         else:
             self.train_loader = get_loader(config, 'train')
             self.valid_loader = get_loader(config, 'valid')
@@ -35,8 +37,7 @@ class Solver():
             self.n_iter     = self.config['solver']['n_iter']
             self.log_step   = self.config['solver']['log_step']
             self.valid_step = self.config['solver']['valid_step']
-        evaluators = self.config['solver']['evaluators']
-        self.evaluators = [get_evaluator(self.log, e) for e in evaluators]
+            self.evaluators = [get_evaluator(e, self.log) for e in evaluators]
 
     def get_optim(self, paras, ratio=1):
         use_apex = self.config['optimizer']['apex']
@@ -120,13 +121,16 @@ class Solver():
         return decoder_output
 
     def index2word(self, tensor):
-        tensor = tensor.permute(1, 0)
-        from preprocess import Voc
-        voc = Voc()
-        voc.load_file('data/voc.pkl')
-        tensor = tensor.tolist()
-        tensor = [[voc.index2word[x] for x in l] for l in tensor]
-        print(tensor)
+        index_list = tensor.permute(1, 0).tolist()
+        tmp = []
+        for sample in index_list:
+            tmp1 = []
+            for index in sample:
+                if (index == 1) or (index == 2):
+                    break
+                tmp1.append(self.voc.index2word[index])
+            tmp.append(' '.join(tmp1))
+        return tmp
 
     def train(self):
         pbar = tqdm(total=self.n_iter)
@@ -168,18 +172,6 @@ class Solver():
         pbar.close()
 
     def valid(self):
-        def index2word(tensor):
-            index_list = tensor.permute(1, 0).tolist()
-            tmp = []
-            for sample in index_list:
-                tmp1 = []
-                for index in sample:
-                    if (index == 1) or (index == 2):
-                        break
-                    tmp1.append(self.voc.index2word[index])
-                tmp.append(' '.join(tmp1))
-            return tmp
-
         total_loss = 0
         for input_seq, target_seq, lens in self.valid_loader:
             input_seq = input_seq.to(self.device)
@@ -198,8 +190,8 @@ class Solver():
             target_seq = target_seq.to(self.device)
             decoder_output = self.model_forward(input_seq, lens, target_seq)
             _, topi = decoder_output.topk(1) # [64, 1]
-            input_seq, target_seq, topi = map(index2word, (input_seq, target_seq, topi.squeeze()))
-            for idx, (i, t, o) in enumerate(zip(input_seq, target_seq, topi)):
+            input_seq, target_seq, topi = map(self.index2word, (input_seq, target_seq, topi.squeeze()))
+            for (i, t, o) in zip(input_seq, target_seq, topi):
                 self.log.add_text('text',
                                   'A&nbsp;&nbsp;&nbsp;&nbsp;: {}  \nB&nbsp;&nbsp;&nbsp;&nbsp;:{}  \nAns:{}'.format(i, o, t),
                                   self.iteration)
@@ -213,3 +205,22 @@ class Solver():
                               'decoder': self.decoder.state_dict(),
                               'enc_opt': self.enc_opt.state_dict(),
                               'dec_opt': self.dec_opt.state_dict()}, is_best)
+
+    def test(self):
+        filename = os.path.join(self.save_dir, 'testing_result.txt')
+        f = open(filename, 'w')
+        for input_seq, target_seq, lens in self.test_loader:
+            input_seq = input_seq.to(self.device)
+            target_seq = target_seq.to(self.device)
+            decoder_output = self.model_forward(input_seq, lens, target_seq)
+            for evaluator in self.evaluators:
+                evaluator.cal(decoder_output, target_seq)
+            _, topi = decoder_output.topk(1) # [64, 1]
+            input_seq, target_seq, topi = map(self.index2word, (input_seq, target_seq, topi.squeeze()))
+            for (i, t, o) in zip(input_seq, target_seq, topi):
+                f.write('i >> {}\n'.format(i))
+                f.write('t >> {}\n'.format(t))
+                f.write('o -- {}\n\n'.format(o))
+        f.close()
+        for evaluator in self.evaluators:
+            print('{}: {}'.format(evaluator.name, evaluator.score))

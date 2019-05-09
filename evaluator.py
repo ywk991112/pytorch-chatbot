@@ -5,10 +5,11 @@ from joblib import Parallel, delayed
 from rouge import rouge_n, rouge_l
 
 class Evaluator:
-    def __init__(self, writer):
+    def __init__(self, writer=None):
         self.count = 0
         self.total_score = 0.0
-        self.writer = writer
+        if writer:
+            self.writer = writer
 
     def cal(self, decoder_output, target_seq):
         raise NotImplementError
@@ -50,7 +51,7 @@ class ROUGE_N(Evaluator):
         self.count += len(rouge_scores)
         self.total_score += sum(rouge_scores)
 
-def get_evaluator(writer, evaluator_name):
+def get_evaluator(evaluator_name, writer=None):
     if evaluator_name == 'perplexity':
         return Perplexity(writer)
     elif evaluator_name == 'rouge_1':
