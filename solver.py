@@ -5,12 +5,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from tensorboardX import SummaryWriter
-from joblib import Parallel, delayed
 from tqdm import tqdm
+from preprocess import Voc
 from model import get_model 
 from dataloader import get_loader
-from preprocess import Voc
-from rouge import rouge_n
+from evaluator import get_evaluator
 
 class Solver():
     def __init__(self, args, config):
@@ -36,6 +35,8 @@ class Solver():
             self.n_iter     = self.config['solver']['n_iter']
             self.log_step   = self.config['solver']['log_step']
             self.valid_step = self.config['solver']['valid_step']
+        evaluators = self.config['solver']['evaluators']
+        self.evaluators = [get_evaluator(self.log, e) for e in evaluators]
 
     def get_optim(self, paras, ratio=1):
         use_apex = self.config['optimizer']['apex']
@@ -118,13 +119,6 @@ class Solver():
 
         return decoder_output
 
-    def rouge_n(self, decoder_output, target_seq, n):
-        _, pred_seq = torch.max(decoder_output.permute(1, 0, 2), -1)
-        pred_seq = pred_seq.cpu()
-        target_seq = target_seq.permute(1, 0).cpu()
-        rouge_scores = Parallel(n_jobs=-1)(delayed(rouge_n)(p, r, 1) for (p, r) in zip(pred_seq, target_seq))
-        return len(rouge_scores), sum(rouge_scores)
-
     def index2word(self, tensor):
         tensor = tensor.permute(1, 0)
         from preprocess import Voc
@@ -159,12 +153,10 @@ class Solver():
                 self.dec_opt.step()
 
                 if self.iteration % self.log_step == 0:
-                    perplexity = torch.exp(loss).item()
-                    self.log.add_scalars('perplexity', {'train': perplexity}, self.iteration)
-
-                    n, tr_rouge_1 = self.rouge_n(decoder_output, target_seq, 1)
-                    tr_rouge_1 = tr_rouge_1 / n 
-                    self.log.add_scalars('rouge_1', {'train': tr_rouge_1}, self.iteration)
+                    with torch.no_grad():
+                        for evaluator in self.evaluators:
+                            evaluator.cal(decoder_output, target_seq)
+                            evaluator.log('train', self.iteration)
 
                 if self.iteration % self.valid_step == 0:
                     with torch.no_grad():
@@ -197,15 +189,10 @@ class Solver():
             decoder_output = self.model_forward(input_seq, lens, target_seq)
             loss = F.cross_entropy(decoder_output.permute(0, 2, 1), target_seq, ignore_index=2, reduction='sum')
             total_loss += loss
-            n, tr_rouge_1 = self.rouge_n(decoder_output, target_seq, 1)
-            total_n += n
-            total_rouge_1 += tr_rouge_1
-        valid_rouge_1 = total_rouge_1 / total_n
-        valid_loss = total_loss / total_n 
-
-        perplexity = torch.exp(valid_loss).item()
-        self.log.add_scalars('perplexity', {'valid': perplexity}, self.iteration)
-        self.log.add_scalars('rouge_1', {'valid': valid_rouge_1}, self.iteration)
+            for evaluator in self.evaluators:
+                evaluator.cal(decoder_output, target_seq)
+        for evaluator in self.evaluators:
+            evaluator.log('valid', self.iteration)
 
         for input_seq, target_seq, lens in self.valid_loader:
             input_seq, target_seq, lens = input_seq[:, :10], target_seq[:, :10], lens[:10]
@@ -228,4 +215,3 @@ class Solver():
                               'decoder': self.decoder.state_dict(),
                               'enc_opt': self.enc_opt.state_dict(),
                               'dec_opt': self.dec_opt.state_dict()}, is_best)
-
