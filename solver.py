@@ -181,8 +181,6 @@ class Solver():
             return tmp
 
         total_loss = 0
-        total_n = 0
-        total_rouge_1 = 0
         for input_seq, target_seq, lens in self.valid_loader:
             input_seq = input_seq.to(self.device)
             target_seq = target_seq.to(self.device)
