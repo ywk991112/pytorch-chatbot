@@ -32,7 +32,7 @@ class Perplexity(Evaluator):
     def cal(self, decoder_output, target_seq):
         loss = F.cross_entropy(decoder_output.permute(0, 2, 1), target_seq, ignore_index=2)
         self.total_score += torch.exp(loss).item()
-        self.count += decoder_output.size(1)
+        self.count += 1 
 
 class ROUGE_N(Evaluator):
     def __init__(self, writer, n):

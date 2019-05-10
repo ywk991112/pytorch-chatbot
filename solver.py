@@ -207,9 +207,10 @@ class Solver():
                               'dec_opt': self.dec_opt.state_dict()}, is_best)
 
     def test(self):
+        self.load_checkpoint(os.path.join(self.save_dir, 'model_best.pth.tar'))
         filename = os.path.join(self.save_dir, 'testing_result.txt')
         f = open(filename, 'w')
-        for input_seq, target_seq, lens in self.test_loader:
+        for input_seq, target_seq, lens in tqdm(self.test_loader):
             input_seq = input_seq.to(self.device)
             target_seq = target_seq.to(self.device)
             decoder_output = self.model_forward(input_seq, lens, target_seq)
@@ -221,6 +222,8 @@ class Solver():
                 f.write('i >> {}\n'.format(i))
                 f.write('t >> {}\n'.format(t))
                 f.write('o -- {}\n\n'.format(o))
-        f.close()
         for evaluator in self.evaluators:
-            print('{}: {}'.format(evaluator.name, evaluator.score))
+            score = evaluator.score
+            print('{}: {}'.format(evaluator.name, score))
+            f.write('{}: {}\n'.format(evaluator.name, score))
+        f.close()
