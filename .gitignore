@@ -105,3 +105,4 @@ save
 data
 *.sh
 config
+!config/example_config.yaml
