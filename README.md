@@ -3,7 +3,7 @@ This is a pytorch seq2seq tutorial for [Formosa Speech Grand Challenge](https://
 Here is the [tutorial](https://fgc.stpi.narl.org.tw/activity/videoDetail/4b1141305df38a7c015e194f22f8015b) in Chinese.
 
 ## Update
-A new version is already in branch "dev".
+A new version is already implemented in branch "dev".
 
 ## Requirement
 * python 3.5+
