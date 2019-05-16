@@ -4,59 +4,70 @@ Here is the [tutorial](https://fgc.stpi.narl.org.tw/activity/videoDetail/4b11413
 
 ## Requirement
 * python 3.5+
-* pytorch 0.4.0
+* pytorch 0.4.0+
 * tqdm
+* tensorboardX
+* apex(optional)
 
 ## Get started
 #### Clone the repository
 ```
 git clone https://github.com/ywk991112/pytorch-chatbot
 ```
+
+#### Config
+Before running through all the process below, modify the config file first.
+
 #### Corpus
-In the corpus file, the input-output sequence pairs should be in the adjacent lines. For example, 
+Corpus directory tree struture should be like...
+```
+<corpus_directory name>
+├── <train.txt>
+├── <valid.txt>
+|       ⋮
+└── <test.txt>
+```
+
+In each corpus file, the input-output sequence pairs should be in the adjacent lines. For example, 
 ```
 I'll see you next time.
 Sure. Bye.
 How are you?
 Better than ever.
 ```
-The corpus files should be placed under a path like,
+
+#### Preprocessing
+The corpus text files should be preprocessed first.
 ```
-pytorch-chatbot/data/<corpus file name>
+python preprocess.py --config <config_path>
 ```
-Otherwise, the corpus file will be tracked by git.
-#### Pretrained Model
-The pretrained model on [movie\_subtitles corpus](https://www.space.ntu.edu.tw/navigate/s/229EDD285D994B82B72CEDE5B5CA0CE0QQY) with an bidirectional rnn layer and
-hidden size 512 can be downloaded in [this link](https://www.space.ntu.edu.tw/navigate/s/D287C8C95A0B4877B8666A45D5D318C0QQY).
-The pretrained model file should be placed in directory as followed.
-```
-mkdir -p save/model/movie_subtitles/1-1_512
-mv 50000_backup_bidir_model.tar save/model/movie_subtitles/1-1_512
-```
+
 #### Training
 Run this command to start training, change the argument values in your own need.
 ```
-python main.py -tr <CORPUS_FILE_PATH> -la 1 -hi 512 -lr 0.0001 -it 50000 -b 64 -p 500 -s 1000
+python main.py --config <config_path>
 ```
-Continue training with saved model.
+Continue training with saved checkpoint.
 ```
-python main.py -tr <CORPUS_FILE_PATH> -l <MODEL_FILE_PATH> -lr 0.0001 -it 50000 -b 64 -p 500 -s 1000
+python main.py --config <config_path> --load <checkpoint_path>
+```
+Run tensorboardX to see the training result.
+```
+tensorboard --logdir <log_path>
 ```
 For more options,
 ```
 python main.py -h
 ```
+
 #### Testing
-Models will be saved in `pytorch-chatbot/save/model` while training, and this can be changed in `config.py`.  
-Evaluate the saved model with input sequences in the corpus.
+Evaluate the saved model with input sequences in the test corpus.
 ```
-python main.py -te <MODEL_FILE_PATH> -c <CORPUS_FILE_PATH>
+python main.py --config <config_path> -te
 ```
-Test the model with input sequence manually.
-```
-python main.py -te <MODEL_FILE_PATH> -c <CORPUS_FILE_PATH> -i
-```
-Beam search with size k.
-```
-python main.py -te <MODEL_FILE_PATH> -c <CORPUS_FILE_PATH> -be k [-i] 
-```
+
+#### TODO
+- [ ] beam search (already implemented in master branch)
+- [ ] test multi gpu
+
+
