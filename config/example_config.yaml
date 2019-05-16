@@ -1,0 +1,30 @@
+preprocess:
+  data_dir: /data/corpus/open_subtitles # Corpus directory
+  save_dir: data                        # Directory for saving generated data
+  size: 30000                           # Size of the vocabulary
+  max_len: 15                           # Max length of the inputs and outputs(0 for disabling max_len)
+  normalize: True                       # Normalize the strings
+model:
+  n_layers: 1                           # number of encoder layers
+  hidden_size: 256
+  bidir: True                           # bidirectional rnn encoder
+  attn: dot                             # attention mechanism(dot / general / concat)
+  dropout: 0.2
+optimizer:
+  type: Adam
+  lr: 0.0001                            # learning rate
+  apex: True
+  decoder_learning_ratio: 1
+solver:
+  n_iter: 50000
+  teacher_forcing_ratio: 0.75
+  train_set: [opensubtitles_train]
+  batch_size: 32 
+  valid_set: [opensubtitles_valid]
+  valid_step: 500
+  log_step: 20
+  test_set: [opensubtitles_test]
+  beam_size: 3
+  save_dir: save
+  log_dir: log
+  evaluator: [perplexity, rouge_1, rouge_2, rouge_l]

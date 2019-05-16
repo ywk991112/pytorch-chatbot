@@ -104,5 +104,5 @@ log
 save
 data
 *.sh
-config
+config/*
 !config/example_config.yaml
