@@ -28,6 +28,14 @@ Corpus directory tree struture should be like...
 └── <test.txt>
 ```
 
+Take config file `example_config.yaml` as the example, the directory tree will be
+```
+/data/corpus/open_subtitles
+├── opensubtitles_train.txt
+├── opensubtitles_valid.txt
+└── opensubtitles_test.txt
+```
+
 In each corpus file, the input-output sequence pairs should be in the adjacent lines. For example, 
 ```
 I'll see you next time.
