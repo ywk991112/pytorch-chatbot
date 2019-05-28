@@ -76,6 +76,4 @@ python main.py --config <config_path> -te
 
 #### TODO
 - [ ] beam search (already implemented in master branch)
-- [ ] test multi gpu
-
-
+- [ ] fix multi gpu bug
