@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
-from .preprocess import Voc
+from preprocess import Voc
 from .model import get_model 
 from .dataloader import get_loader
 from .evaluator import get_evaluator
