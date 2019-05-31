@@ -131,6 +131,19 @@ def preprocess(config):
     voc = genVoc(config, sets)
     encode(config, sets, voc)
 
+def config_lookup(config, origin_save_dir):
+    tmp = config['save_dir']
+    config['save_dir'] = origin_save_dir
+    lookup_table = {}
+    lookup_table_path = join(origin_save_dir, 'config_data_map.pkl')
+    if os.path.exists(lookup_table_path):
+        with open(lookup_table_path, 'rb') as f:
+            lookup_table = pickle.load(f)
+    lookup_table[tuple(config.values())] = tmp
+    with open(lookup_table_path, 'wb') as f:
+        pickle.dump(lookup_table, f)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate vocabulary and turn corpus into sequence of indices.')
     parser.add_argument('--config', type=str, help='Config file')
@@ -139,5 +152,7 @@ if __name__ == "__main__":
     _, config_name = os.path.split(args.config)
     config_name = os.path.splitext(config_name)[0]
     config = config['preprocess']
+    origin_save_dir = config['save_dir'] # used in look-up table
     config['save_dir'] = join(config['save_dir'], config_name)
     preprocess(config)
+    config_lookup(config, origin_save_dir)

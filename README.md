@@ -49,7 +49,7 @@ Better than ever.
 #### Preprocessing
 The corpus text files should be preprocessed first.
 ```
-python preprocess.py --config <config_path>
+python src/preprocess.py --config <config_path>
 ```
 
 #### Training

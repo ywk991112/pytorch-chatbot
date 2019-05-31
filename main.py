@@ -1,6 +1,7 @@
 import argparse
 import yaml
 import os
+import pickle
 from src.solver import Solver
 from os.path import join
 
@@ -25,7 +26,9 @@ if __name__ == '__main__':
     config_name = os.path.splitext(config_name)[0]
     config['solver']['log_dir']  = join(config['solver']['log_dir'], config_name)
     config['solver']['save_dir'] = join(config['solver']['save_dir'], config_name)
-    config['preprocess']['save_dir'] = join(config['preprocess']['save_dir'], config_name)
+    with open(join(config['preprocess']['save_dir'], 'config_data_map.pkl'), 'rb') as f:
+        lookup_table = pickle.load(f)
+    config['preprocess']['save_dir'] = lookup_table[tuple(config['preprocess'].values())]
 
     solver = Solver(args, config)
     if args.test:
