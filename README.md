@@ -21,7 +21,7 @@ git clone https://github.com/ywk991112/pytorch-chatbot
 Before running through all the process below, modify the config file first.
 
 #### Corpus
-Corpus directory tree struture should be like...
+Corpus directory tree struture should be like...(get more explanations in Issue #17)
 ```
 <corpus_directory name>
 ├── <train.txt>
