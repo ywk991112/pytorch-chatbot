@@ -1,7 +1,7 @@
 import argparse
 import yaml
 import os
-from solver import Solver
+from src.solver import Solver
 from os.path import join
 
 def parse():

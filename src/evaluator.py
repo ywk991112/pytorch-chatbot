@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 from joblib import Parallel, delayed
 
-from rouge import rouge_n, rouge_l
+from .rouge import rouge_n, rouge_l
 
 class Evaluator:
     def __init__(self, writer=None):
