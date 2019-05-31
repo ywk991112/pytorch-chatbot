@@ -27,4 +27,4 @@ solver:
   beam_size: 3
   save_dir: save
   log_dir: log
-  evaluator: [perplexity, rouge_1, rouge_2, rouge_l]
+  evaluators: [perplexity, rouge_1, rouge_2, rouge_l]
