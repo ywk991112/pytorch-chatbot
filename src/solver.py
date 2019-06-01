@@ -172,6 +172,8 @@ class Solver():
         pbar.close()
 
     def valid(self):
+        self.encoder.eval()
+        self.decoder.eval()
         total_loss = 0
         for input_seq, target_seq, lens in self.valid_loader:
             input_seq = input_seq.to(self.device)
@@ -205,9 +207,13 @@ class Solver():
                               'decoder': self.decoder.state_dict(),
                               'enc_opt': self.enc_opt.state_dict(),
                               'dec_opt': self.dec_opt.state_dict()}, is_best)
+        self.encoder.train()
+        self.decoder.train()
 
     def test(self):
         self.load_checkpoint(os.path.join(self.save_dir, 'model_best.pth.tar'))
+        self.encoder.eval()
+        self.decoder.eval()
         filename = os.path.join(self.save_dir, 'testing_result.txt')
         f = open(filename, 'w')
         for input_seq, target_seq, lens in tqdm(self.test_loader):
