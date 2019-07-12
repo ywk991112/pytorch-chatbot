@@ -7,6 +7,14 @@ import pickle
 import yaml
 
 class Voc:
+"""
+Args:
+    size : vocabulary size
+    lines : list of sentences
+Attributes:
+    index2word : a dict with key=index value=word
+    word2index : a dict with key=word  value=index
+"""
     def __init__(self, size=4, lines=[]):
         assert size >= 4
         self.index2word = {0: "SOS", 1: "EOS", 2:"PAD", 3:"UNK"}
@@ -19,10 +27,10 @@ class Voc:
                     word2count[word] += 1
         word2count = list(word2count.items())
         word2count.sort(key=lambda x: x[1], reverse=True)
-        self.size = min(size, len(word2count))
+        size = min(size, len(word2count))
         if len(lines):
-            print("{} words trimmed to {} words".format(len(word2count), self.size))
-        for i in range(self.size-4):
+            print("{} words trimmed to {} words".format(len(word2count), size))
+        for i in range(size-4):
             self.index2word[i+4] = word2count[i][0]
         self.word2index = {v: k for k, v in self.index2word.items()}
 
@@ -131,6 +139,9 @@ def preprocess(config):
     voc = genVoc(config, sets)
     encode(config, sets, voc)
 
+# Config files with same preprocess parameters share preprocessed data
+# Generate a look up table with 
+#   key=(preprocess parameters) value=(preprocessed data directory)
 def config_lookup(config, origin_save_dir):
     tmp = config['save_dir']
     config['save_dir'] = origin_save_dir

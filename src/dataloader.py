@@ -16,9 +16,9 @@ class CorpusDataset(Dataset):
     def __len__(self):
         import math
         if self.drop_last:
-            return math.ceil(len(self.pairs)/self.bs)
-        else:
             return len(self.pairs)//self.bs
+        else:
+            return math.ceil(len(self.pairs)/self.bs)
 
     def __getitem__(self, idx):
         return self.pairs[idx*self.bs: (idx+1)*self.bs] 
@@ -37,16 +37,14 @@ def get_loader(config, mode):
     bs = config['solver']['batch_size']
     if mode == 'train':
         data_set = config['solver']['train_set']
-        drop_last = False
         shuffle = True
     elif mode == 'valid':
         data_set = config['solver']['valid_set']
-        drop_last = False
         shuffle = False
     elif mode == 'test':
         data_set = config['solver']['test_set']
-        drop_last = False
         shuffle = False
+    drop_last = False
     else:
         raise NotImplementedError
     dataset = CorpusDataset(config['preprocess']['save_dir'], data_set, batch_size=bs, drop_last=drop_last)
