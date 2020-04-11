@@ -1,6 +1,6 @@
 # pytorch-chatbot
 This is a pytorch seq2seq tutorial for [Formosa Speech Grand Challenge](https://fgc.stpi.narl.org.tw/activity/techai), which is modified from [pratical-pytorch seq2seq-translation-batched](https://github.com/spro/practical-pytorch/blob/master/seq2seq-translation/seq2seq-translation-batched.ipynb).  
-Here is the [tutorial](https://fgc.stpi.narl.org.tw/activity/videoDetail/4b1141305df38a7c015e194f22f8015b) in Chinese.
+[Tutorial](https://pytorch.org/tutorials/beginner/chatbot_tutorial.html) introducing this repo from pytorch official website, [Tutorial](https://fgc.stpi.narl.org.tw/activity/videoDetail/4b1141305df38a7c015e194f22f8015b) in Chinese.
 
 ## Update
 A new version is already implemented in branch "dev".
